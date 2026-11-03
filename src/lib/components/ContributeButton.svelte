@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { saveUploadToken } from '$lib/session-token';
+	import { clearActive, loadActive, saveActive } from '$lib/active-session';
 
-	// `projects` scopes the auto-created session. A session is provisioned on first
-	// open (no selection UI, no "create" step) and reused while this page is open.
+	// Opens the contribute popup. One global session per browser: reuse the stored
+	// session if it is still valid, otherwise provision a new one. No selection UI.
 	let {
-		projects,
 		label = 'Build & attest',
 		variant = 'solid'
-	}: { projects: string[]; label?: string; variant?: 'solid' | 'ghost' } = $props();
+	}: { label?: string; variant?: 'solid' | 'ghost' } = $props();
 
 	let dlg = $state<HTMLDialogElement>();
 	let loading = $state(false);
@@ -16,20 +15,39 @@
 	let err = $state<string | null>(null);
 	let copied = $state(false);
 
+	function lineFor(id: string): string {
+		return `${location.origin}/contribute uuid=${id}`;
+	}
+
 	async function ensureSession() {
 		if (line || loading) return;
 		loading = true;
 		err = null;
 		try {
+			// Reuse the persisted session if the server still has it and it hasn't ended.
+			const existing = loadActive();
+			if (existing) {
+				const check = await fetch(`/api/sessions/${existing.uuid}`);
+				if (check.ok) {
+					const s = (await check.json()) as { state: string };
+					if (s.state !== 'expired' && s.state !== 'abandoned') {
+						uuid = existing.uuid;
+						line = lineFor(existing.uuid);
+						return;
+					}
+				}
+				if (check.status === 404) clearActive();
+			}
+
+			// Otherwise create one global session (all pinned projects) and persist it.
 			const res = await fetch('/api/sessions', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ projects })
+				body: JSON.stringify({})
 			});
 			if (!res.ok) throw new Error(await res.text());
 			const s = (await res.json()) as { uuid: string; uploadToken: string; contributeLine: string };
-			// The uploadToken is kept only in this browser (spec §7); never in the shared line.
-			saveUploadToken(s.uuid, s.uploadToken);
+			saveActive({ uuid: s.uuid, uploadToken: s.uploadToken });
 			line = s.contributeLine;
 			uuid = s.uuid;
 		} catch (e) {

@@ -11,20 +11,20 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		projects?: unknown;
 		instructions?: unknown;
 	} | null;
-	if (!body || !Array.isArray(body.projects) || body.projects.length === 0) {
-		throw error(400, 'projects[] required');
-	}
-	if (body.projects.length > MAX_PROJECTS)
-		throw error(400, `max ${MAX_PROJECTS} projects per session`);
 
-	const requested = body.projects.map(String);
+	const requested = Array.isArray(body?.projects) ? body.projects.map(String) : [];
 	const known = await db.select({ id: projectsTable.id }).from(projectsTable);
 	const knownIds = new Set(known.map((k) => k.id));
-	const selected = requested.filter((p) => knownIds.has(p));
-	if (selected.length === 0) throw error(400, 'no known projects in selection');
+
+	// Default to all pinned projects when none specified: the contribute popup
+	// provisions one global session per user that can build anything.
+	let selected = requested.filter((p) => knownIds.has(p));
+	if (selected.length === 0) selected = known.map((k) => k.id);
+	if (selected.length === 0) throw error(400, 'no projects configured');
+	if (selected.length > MAX_PROJECTS) selected = selected.slice(0, MAX_PROJECTS);
 
 	const instructions =
-		typeof body.instructions === 'string' ? body.instructions.slice(0, 4000) : null;
+		typeof body?.instructions === 'string' ? body.instructions.slice(0, 4000) : null;
 
 	const { uuid, uploadToken } = await createSession(selected, instructions);
 

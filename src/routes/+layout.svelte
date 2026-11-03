@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import SessionIndicator from '$lib/components/SessionIndicator.svelte';
 	let { children } = $props();
 </script>
 
@@ -9,7 +10,8 @@
 			<span class="inline-block h-3 w-3 rounded-sm bg-emerald-400"></span>
 			<span>legit<span class="text-zinc-500">.build</span></span>
 		</a>
-		<nav class="flex items-center gap-5 text-sm text-zinc-400">
+		<nav class="flex items-center gap-4 text-sm text-zinc-400">
+			<SessionIndicator />
 			<a class="transition hover:text-zinc-100" href="/about">How it works</a>
 		</nav>
 	</header>

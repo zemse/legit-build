@@ -76,7 +76,7 @@
 			attestation of the binary hash. One paste to start. You review and sign only what comes back.
 		</p>
 		<div class="mt-6 flex justify-center">
-			<ContributeButton projects={allProjectIds} label="I want to attest binaries" />
+			<ContributeButton label="I want to attest binaries" />
 		</div>
 	</section>
 {/if}
