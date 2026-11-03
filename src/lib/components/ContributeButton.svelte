@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { clearActive, loadActive, saveActive } from '$lib/active-session';
+	import { contributeLine, ensureSession } from '$lib/active-session';
 
 	// Opens the contribute popup. One global session per browser: reuse the stored
 	// session if it is still valid, otherwise provision a new one. No selection UI.
@@ -15,41 +15,14 @@
 	let err = $state<string | null>(null);
 	let copied = $state(false);
 
-	function lineFor(id: string): string {
-		return `${location.origin}/contribute uuid=${id}`;
-	}
-
-	async function ensureSession() {
+	async function provision() {
 		if (line || loading) return;
 		loading = true;
 		err = null;
 		try {
-			// Reuse the persisted session if the server still has it and it hasn't ended.
-			const existing = loadActive();
-			if (existing) {
-				const check = await fetch(`/api/sessions/${existing.uuid}`);
-				if (check.ok) {
-					const s = (await check.json()) as { state: string };
-					if (s.state !== 'expired' && s.state !== 'abandoned') {
-						uuid = existing.uuid;
-						line = lineFor(existing.uuid);
-						return;
-					}
-				}
-				if (check.status === 404) clearActive();
-			}
-
-			// Otherwise create one global session (all pinned projects) and persist it.
-			const res = await fetch('/api/sessions', {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({})
-			});
-			if (!res.ok) throw new Error(await res.text());
-			const s = (await res.json()) as { uuid: string; uploadToken: string; contributeLine: string };
-			saveActive({ uuid: s.uuid, uploadToken: s.uploadToken });
-			line = s.contributeLine;
+			const s = await ensureSession();
 			uuid = s.uuid;
+			line = contributeLine(s.uuid);
 		} catch (e) {
 			err = e instanceof Error ? e.message : 'Failed to create session';
 		} finally {
@@ -59,7 +32,7 @@
 
 	async function open() {
 		dlg?.showModal();
-		await ensureSession();
+		await provision();
 	}
 
 	async function copy() {

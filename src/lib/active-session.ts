@@ -33,3 +33,33 @@ export function clearActive(): void {
 		/* ignore */
 	}
 }
+
+// Reuse the persisted session if the server still has it and it hasn't ended,
+// otherwise provision one global session (all pinned projects) and persist it.
+// Shared by the contribute box and the popup so a browser keeps one stable uuid.
+export async function ensureSession(): Promise<ActiveSession> {
+	const existing = loadActive();
+	if (existing) {
+		const check = await fetch(`/api/sessions/${existing.uuid}`);
+		if (check.ok) {
+			const s = (await check.json()) as { state: string };
+			if (s.state !== 'expired' && s.state !== 'abandoned') return existing;
+		}
+		if (check.status === 404) clearActive();
+	}
+
+	const res = await fetch('/api/sessions', {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: JSON.stringify({})
+	});
+	if (!res.ok) throw new Error(await res.text());
+	const s = (await res.json()) as { uuid: string; uploadToken: string };
+	const active = { uuid: s.uuid, uploadToken: s.uploadToken };
+	saveActive(active);
+	return active;
+}
+
+export function contributeLine(uuid: string): string {
+	return `${location.origin}/contribute uuid=${uuid}`;
+}

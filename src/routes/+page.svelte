@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ContributeButton from '$lib/components/ContributeButton.svelte';
+	import ContributeBox from '$lib/components/ContributeBox.svelte';
 	import { projectHref, releaseHref, timeAgo } from '$lib/format';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
@@ -73,10 +73,11 @@
 		<h2 class="text-2xl font-semibold tracking-tight">Attest binaries yourself</h2>
 		<p class="mx-auto mt-3 max-w-xl text-zinc-400">
 			Rebuild any release with your own agent, in your own environment, and publish a signed
-			attestation of the binary hash. One paste to start. You review and sign only what comes back.
+			attestation of the binary hash. Paste the line below into your coding agent, add your own build
+			instructions, and sign only what comes back.
 		</p>
-		<div class="mt-6 flex justify-center">
-			<ContributeButton label="I want to attest binaries" />
+		<div class="mx-auto mt-6 max-w-xl text-left">
+			<ContributeBox />
 		</div>
 	</section>
 {/if}
