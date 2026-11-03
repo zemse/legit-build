@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ContributeBox from '$lib/components/ContributeBox.svelte';
-	import { projectHref, releaseHref, timeAgo } from '$lib/format';
+	import { projectHref, timeAgo } from '$lib/format';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 
@@ -26,7 +26,7 @@
 			<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{#each rows as p (p.id)}
 					<a
-						href={p.latest ? releaseHref(p.id, p.latest.tag) : projectHref(p.id)}
+						href={projectHref(p.id)}
 						class="group rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 transition hover:border-emerald-700/50 hover:bg-zinc-900"
 					>
 						<div class="flex items-center justify-between gap-2">

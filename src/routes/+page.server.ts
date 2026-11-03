@@ -13,13 +13,21 @@ export const load: PageServerLoad = async ({ setHeaders }) => {
 		countByProjectVersion()
 	]);
 
-	// Latest release per project (releases already sorted newest first).
-	const latest = new Map<string, (typeof allReleases)[number]>();
-	for (const r of allReleases) if (!latest.has(r.projectId)) latest.set(r.projectId, r);
+	// Latest STABLE release per project for the home card (releases already sorted
+	// newest first). Prereleases are not shown here; fall back to the newest release
+	// only if a project has no stable release at all.
+	const latestStable = new Map<string, (typeof allReleases)[number]>();
+	const latestAny = new Map<string, (typeof allReleases)[number]>();
+	for (const r of allReleases) {
+		if (!latestAny.has(r.projectId)) latestAny.set(r.projectId, r);
+		if (!r.prerelease && !latestStable.has(r.projectId)) latestStable.set(r.projectId, r);
+	}
+	const latest = (projectId: string) =>
+		latestStable.get(projectId) ?? latestAny.get(projectId) ?? null;
 
 	const rows = allProjects
 		.map((p) => {
-			const latestRel = latest.get(p.id) ?? null;
+			const latestRel = latest(p.id);
 			return {
 				...p,
 				latest: latestRel,
