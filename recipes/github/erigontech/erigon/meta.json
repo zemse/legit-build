@@ -1,0 +1,8 @@
+{
+  "project": "github/erigontech/erigon",
+  "artifactPath": "artifact/erigon",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "go": "1.27.3 (golang:1.27-bookworm)", "base": "debian:12-slim", "note": "GOAMD64=v2, GOEXPERIMENT=jsonv2, tags nosqlite,noboltdb; gcc 12.2.0" },
+  "reproducible": "partial",
+  "notes": "Decomposed to the byte. Rebuilders who clone the same tag agree on the Go code AND the embedded git version strings (same checkout state for everyone), gcc, and flags. The ONLY remaining divergence is libmdbx baking a wall-clock build timestamp (mdbx.c __DATE__ \" \" __TIME__ via cgo), which differs every build and cascades into the whole binary, so the hash does not converge yet. Fix: mdbx-go#261 (open PR: default MDBX_BUILD_TIMESTAMP), or patch the vendored mdbx.c to a fixed value. Flip this to full once the timestamp is pinned. (Matching the OFFICIAL release additionally needs GIT_BRANCH=release/3.8 GIT_TAG='' overrides, but legit.build only needs rebuilder-to-rebuilder agreement, which the plain tag clone already gives except for the mdbx timestamp.)"
+}

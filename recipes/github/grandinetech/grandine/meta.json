@@ -1,0 +1,8 @@
+{
+  "project": "github/grandinetech/grandine",
+  "artifactPath": "artifact/grandine",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "rust": "1.95.0 (rust-toolchain.toml)", "cross": "pinned rev f86fd03", "note": "cross image ghcr.io/cross-rs/x86_64-unknown-linux-gnu:main is a FLOATING tag" },
+  "reproducible": "none",
+  "notes": "Root-caused: rustc codegen is fully deterministic (two builds differed in exactly 12 timestamp bytes), but two inputs block convergence for an outside rebuilder: (1) metrics/src/beaconchain.rs uses build_time_utc!() which bakes a live nanosecond UTC instant, recorded nowhere, and (2) Cross.toml pins the cross C-toolchain image by the moving :main tag, so C-dep bytes (blst, mdbx, secp256k1, kzg) drift over time. Upstream fixes that would make it full: pin Cross.toml to an @sha256 digest, gate/remove build_time_utc!() (honor SOURCE_DATE_EPOCH), add --remap-path-prefix for CARGO_HOME + sysroot. Until then, expect divergence; report it honestly."
+}

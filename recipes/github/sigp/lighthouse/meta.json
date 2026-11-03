@@ -1,0 +1,8 @@
+{
+  "project": "github/sigp/lighthouse",
+  "artifactPath": "artifact/lighthouse",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "rust": "1.99.0 (pinned by the repo's rust:1.99.0-bookworm@sha256:114c... image)", "note": "scripts/ci/build-linux.sh runs cargo inside the digest-pinned image" },
+  "reproducible": "full",
+  "notes": "Verified bit-for-bit vs the published v8.3.2 x86_64 release binary. Everything is frozen by the Docker image digest (rustc 1.99.0, gcc 13.3.0, LLD) plus a fixed in-container workdir /lighthouse and CARGO_HOME. No SOURCE_DATE_EPOCH needed; nothing in the dep graph bakes a wall-clock value. Caveat: the image installs cmake/clang via apt at build time, so re-pin if the bookworm gcc/clang moves."
+}

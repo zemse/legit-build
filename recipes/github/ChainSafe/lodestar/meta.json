@@ -1,0 +1,8 @@
+{
+  "project": "github/ChainSafe/lodestar",
+  "artifactPath": "artifact/lodestar",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "node": "24.22.1", "pnpm": "11.0.0", "caxa": "3.0.6" },
+  "reproducible": "none",
+  "notes": "The caxa standalone binary is NOT byte-reproducible: caxa copies the app without preserveTimestamps and ignores SOURCE_DATE_EPOCH, so all ~31,800 tar-entry mtimes get the build wall-clock time; it also uses a random --identifier. The Go stub, gzip wrapper, and bundled node runtime are deterministic, so a ~2-line caxa change would fix it, but as shipped it cannot converge. Lodestar's trust model for the binary is attestation, not reproducibility: the npm package (@chainsafe/lodestar) and the Docker images carry SLSA provenance (verify with `npm audit signatures` / `gh attestation verify`). Build and report honestly; expect divergence."
+}
