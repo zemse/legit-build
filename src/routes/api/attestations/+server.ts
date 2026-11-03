@@ -1,7 +1,6 @@
-import type { SignedOffchainAttestation } from '@ethereum-attestation-service/eas-sdk';
 import { error, json } from '@sveltejs/kit';
 import { storeSubjects } from '$lib/server/attestations';
-import { verifyOffchain } from '$lib/server/eas';
+import { reviveSigned, verifyOffchain } from '$lib/server/eas';
 import { markAttested } from '$lib/server/sessions';
 import { resolveIdentity } from '$lib/server/reputation';
 import { decodeBatch } from '$lib/eas/schema';
@@ -12,13 +11,13 @@ import type { RequestHandler } from './$types';
 // Wallet off-chain path (spec §5.3): verify signature, decode the batch, store per subject.
 export const POST: RequestHandler = async ({ request }) => {
 	const body = (await request.json().catch(() => null)) as {
-		signed?: SignedOffchainAttestation;
+		signed?: Record<string, unknown>;
 		signer?: string;
 		sessionUuid?: string;
 	} | null;
 	if (!body?.signed || !body.signer) throw error(400, 'signed + signer required');
 
-	const signed = body.signed;
+	const signed = reviveSigned(body.signed);
 	const signer = body.signer.toLowerCase();
 
 	// The claimed signer must match the recovered signer.

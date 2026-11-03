@@ -41,6 +41,21 @@ export async function signIssuerAttestation(
 	return { uid: signed.uid, signed, attester: await signer.getAddress() };
 }
 
+/**
+ * Revive a JSON-transported signed attestation: the client stringifies bigint
+ * fields, so convert the numeric message fields back to BigInt before verifying.
+ */
+export function reviveSigned(obj: Record<string, unknown>): SignedOffchainAttestation {
+	const o = JSON.parse(JSON.stringify(obj)) as Record<string, unknown>;
+	const msg = o.message as Record<string, unknown> | undefined;
+	if (msg) {
+		for (const k of ['expirationTime', 'time', 'nonce']) {
+			if (msg[k] !== undefined && msg[k] !== null) msg[k] = BigInt(msg[k] as string);
+		}
+	}
+	return o as unknown as SignedOffchainAttestation;
+}
+
 /** Verify a wallet-signed off-chain attestation (spec §5.3: API verifies signature). */
 export async function verifyOffchain(signed: SignedOffchainAttestation): Promise<boolean> {
 	try {
