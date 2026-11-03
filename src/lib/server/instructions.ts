@@ -8,9 +8,11 @@ const RECIPES_REPO = 'https://github.com/legit-build/recipes'; // placeholder un
 /**
  * Markdown instructions scoped to one session (spec §6, §8). Served to the agent.
  *
- * SECURITY (spec §7 OPEN, owned by the other session): this currently embeds the
- * uploadToken, so anyone holding the uuid can fetch it. That is the known hole to
- * close; move token delivery off the uuid-fetchable path before launch.
+ * CAPABILITY MODEL (spec §7, settled): the uuid is the public view/subscribe
+ * capability that lives in the URL; the uploadToken is a separate secret delivered
+ * only inside this instruction body (never in the URL). Possession of this body is
+ * the upload capability. Nothing counts until the user signs in their trusted
+ * context (wallet/Twitter), or the agent includes a verifiable GitHub signature.
  */
 export async function buildAgentInstructions(origin: string, session: Session): Promise<string> {
 	const selected = session.projects;
@@ -71,6 +73,29 @@ Content-Type: application/json
 \`\`\`
 
 UPLOAD_TOKEN: \`${session.uploadToken}\`
+
+Build and report **only what you observe**. Never fetch, guess, or compare against any
+"expected", "official", or "canonical" hash; legit.build compares rebuilders to each
+other, not to a blessed value.
+
+## Optional: sign with your GitHub identity
+
+Do this **only if a GPG signing key already exists on this machine** (check
+\`gpg --list-secret-keys\`). Never generate a key to sign; having no key is normal, and
+you then just skip this and the user authorizes in their browser via wallet or Twitter.
+
+If a key exists:
+1. You must know the GitHub username the key is registered under (ask the user; there is
+   no reverse lookup from key to account).
+2. Canonical payload = the result object's **10 fields only**, serialized with RFC 8785
+   JSON Canonicalization (sorted keys, UTF-8, no insignificant whitespace).
+3. \`gpg --detach-sign --armor\` over that exact payload.
+4. Add \`githubUsername\` and \`gpgSignature\` (the armored block) to the result object.
+
+A verified signature is self-authorizing: it is recorded immediately as a GitHub-key
+attestation, no browser step. Security: sign only where **you** run is the user's own
+trusted machine. In a cloud sandbox, signing exposes the user's private key to that
+sandbox, so prefer unsigned there and let the user authorize in the browser.
 
 ## When all builds are done
 

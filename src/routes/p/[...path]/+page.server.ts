@@ -81,7 +81,13 @@ export const load: PageServerLoad = async ({ params, setHeaders }) => {
 	const views = await getReleaseAttestations(projectId, tag);
 	const cohorts = buildCohorts(views);
 	const distinctIdentities = new Set(
-		views.map((v) => (v.identity.kind === 'wallet' ? v.identity.address : v.identity.handle))
+		views.map((v) =>
+			v.identity.kind === 'wallet'
+				? v.identity.address
+				: v.identity.kind === 'github'
+					? `github:${v.identity.userId ?? v.identity.login}`
+					: v.identity.handle
+		)
 	).size;
 
 	return {

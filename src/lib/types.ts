@@ -14,6 +14,23 @@ export interface BuildResult {
 	toolchainHash: string; // compiler/toolchain fingerprint
 	buildLogSha256: string; // hash of the full log; log optionally uploaded
 	environment: string; // "aws c7g.4xlarge" | "local" | "e2b sandbox" ...
+
+	// Optional GitHub signing (spec 11/12). Agent-provided: the claimed username
+	// and a detached signature over the canonical 10 fields. SSH is accepted in the
+	// shape but not yet verified server-side.
+	githubUsername?: string;
+	gpgSignature?: string;
+	sshSignature?: string;
+	// Server-populated at upload (never trust an agent-supplied value here).
+	githubSig?: GitHubSigStatus;
+}
+
+/** Outcome of verifying an agent's GitHub signature, stored on the session result. */
+export interface GitHubSigStatus {
+	status: 'valid' | 'invalid';
+	login: string;
+	userId: number | null;
+	keyType: 'gpg' | 'ssh';
 }
 
 export type SessionState =
@@ -47,7 +64,17 @@ export interface TwitterIdentity {
 	handle: string;
 }
 
-export type Identity = WalletIdentity | TwitterIdentity;
+export interface GitHubIdentity {
+	kind: 'github';
+	login: string;
+	userId: number | null; // stable account id; logins are mutable
+	keyFingerprint: string | null;
+	keyType: 'gpg' | 'ssh';
+}
+
+export type Identity = WalletIdentity | TwitterIdentity | GitHubIdentity;
+
+export type AttestationSource = 'eas' | 'db' | 'github';
 
 /** A stored attestation, DB-issued (twitter) or wallet (EAS off-chain). */
 export interface AttestationView {
@@ -59,7 +86,7 @@ export interface AttestationView {
 	recipeHash: string;
 	toolchainHash: string;
 	artifactHash: string;
-	source: 'eas' | 'db';
+	source: AttestationSource;
 	identity: Identity;
 	createdAt: string;
 }
@@ -69,7 +96,7 @@ export interface HashGroup {
 	artifactHash: string;
 	count: number;
 	identities: Identity[];
-	sources: Array<'eas' | 'db'>;
+	sources: AttestationSource[];
 }
 
 export interface ArchCohort {

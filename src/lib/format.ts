@@ -12,6 +12,7 @@ export function shortAddr(a: string): string {
 
 export function identityLabel(id: Identity): string {
 	if (id.kind === 'twitter') return `@${id.handle}`;
+	if (id.kind === 'github') return id.login;
 	return id.ens || shortAddr(id.address);
 }
 

@@ -2,13 +2,20 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from './db';
 import { attestations } from './db/schema';
 import type { DecodedSubject } from '$lib/eas/schema';
-import type { ArchCohort, AttestationView, HashGroup, Identity, TargetSummary } from '$lib/types';
+import type {
+	ArchCohort,
+	AttestationSource,
+	AttestationView,
+	HashGroup,
+	Identity,
+	TargetSummary
+} from '$lib/types';
 
 export interface StoreParams {
 	subjects: DecodedSubject[];
 	identity: Identity;
 	attester: string;
-	source: 'eas' | 'db';
+	source: AttestationSource;
 	uidPrefix: string; // EAS UID (shared by all rows in a batch) or `db:${id}`
 	sessionUuid?: string;
 	raw?: Record<string, unknown>;
@@ -33,10 +40,12 @@ export async function storeSubjects(p: StoreParams): Promise<number> {
 		refUid: null,
 		sessionUuid: p.sessionUuid ?? null
 	}));
+	// Ignore both the primary key and the (attester, subject) dedupe index, so a
+	// re-submitted attestation is a no-op rather than a unique-violation error.
 	const res = await db
 		.insert(attestations)
 		.values(rows)
-		.onConflictDoNothing({ target: attestations.id })
+		.onConflictDoNothing()
 		.returning({ id: attestations.id });
 	return res.length;
 }

@@ -153,6 +153,21 @@
 						{/if}
 						<span class="font-medium">{r.project}</span>
 						<span class="mono text-xs text-zinc-500">{r.osArch}</span>
+						{#if r.githubSig?.status === 'valid'}
+							<span
+								class="rounded-full border border-violet-700/50 bg-violet-950/40 px-2 py-0.5 text-xs text-violet-300"
+								title="Verified GitHub key signature; already attested, no browser step needed"
+							>
+								✓ GitHub {r.githubSig.login}
+							</span>
+						{:else if r.githubSig?.status === 'invalid'}
+							<span
+								class="rounded-full border border-amber-700/50 bg-amber-950/40 px-2 py-0.5 text-xs text-amber-300"
+								title="GitHub signature did not verify; attest with your wallet or Twitter instead"
+							>
+								GitHub sig invalid
+							</span>
+						{/if}
 					</div>
 					<div class="flex items-center gap-3">
 						<span class="mono text-sm text-emerald-300">{shortHash(r.artifactHash)}</span>

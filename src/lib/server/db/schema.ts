@@ -10,7 +10,7 @@ import {
 	timestamp,
 	uniqueIndex
 } from 'drizzle-orm/pg-core';
-import type { BuildResult, Identity, SessionState } from '../../types';
+import type { AttestationSource, BuildResult, Identity, SessionState } from '../../types';
 
 /**
  * Projects we track. Identity is forge-qualified so the same model supports any
@@ -87,7 +87,7 @@ export const attestations = pgTable(
 	'attestations',
 	{
 		id: text('id').primaryKey(), // EAS off-chain UID + index, or `db:${id}#i`
-		source: text('source').$type<'eas' | 'db'>().notNull(),
+		source: text('source').$type<AttestationSource>().notNull(),
 
 		// Subject (spec §4). `project` is the forge-qualified project id.
 		project: text('project').notNull(),
