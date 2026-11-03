@@ -1,0 +1,8 @@
+{
+  "project": "github/status-im/nimbus-eth2",
+  "artifactPath": "artifact/nimbus_beacon_node",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "base": "statusteam/nimbus_beacon_node:dist_base...@sha256:0600991a... (pinned in-repo)", "note": "make dist-amd64 builds inside the pinned image" },
+  "reproducible": "partial",
+  "notes": "The digest-pinned toolchain genuinely produces identical CODE: the .text section (and all loadable data bar a 2-3 byte date string) is bit-identical to the published v26.10.2 beacon node. But the FULL binary does not converge, for two reasons: (1) make update rebuilds the Nim compiler inside the container and Nim bakes a 'Compiled at <YYYY-MM-DD>' banner into .rodata (changes daily, no SOURCE_DATE_EPOCH); (2) the .symtab/.strtab local-symbol ordering is environment-dependent (build parallelism / readdir order, nproc), which is the bulk of the byte diff but touches no code. Two builds on the same machine+date are identical; across machines/days they differ. So exact-hash verification of the shipped (unstripped) binary fails for third parties, even though the running code reproduces. Status fixes: set SOURCE_DATE_EPOCH for the Nim banner + make symbol emission order deterministic; then it is full. The dist TARBALL is additionally non-reproducible (plain tar czf embeds mtimes/order)."
+}
