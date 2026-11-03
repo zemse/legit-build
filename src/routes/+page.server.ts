@@ -1,7 +1,7 @@
 import { desc } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { projects, releases } from '$lib/server/db/schema';
-import { countByProject } from '$lib/server/attestations';
+import { countByProjectVersion } from '$lib/server/attestations';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ setHeaders }) => {
@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ setHeaders }) => {
 	const [allProjects, allReleases, counts] = await Promise.all([
 		db.select().from(projects),
 		db.select().from(releases).orderBy(desc(releases.publishedAt)),
-		countByProject()
+		countByProjectVersion()
 	]);
 
 	// Latest release per project (releases already sorted newest first).
@@ -18,11 +18,15 @@ export const load: PageServerLoad = async ({ setHeaders }) => {
 	for (const r of allReleases) if (!latest.has(r.projectId)) latest.set(r.projectId, r);
 
 	const rows = allProjects
-		.map((p) => ({
-			...p,
-			latest: latest.get(p.id) ?? null,
-			attestations: counts[p.id] ?? 0
-		}))
+		.map((p) => {
+			const latestRel = latest.get(p.id) ?? null;
+			return {
+				...p,
+				latest: latestRel,
+				// Attestations on the latest release specifically (spec: default view).
+				attestations: latestRel ? counts[`${p.id}@${latestRel.tag}`] ?? 0 : 0
+			};
+		})
 		.sort((a, b) => (a.name ?? a.repo).localeCompare(b.name ?? b.repo));
 
 	return {

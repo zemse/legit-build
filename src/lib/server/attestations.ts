@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from './db';
 import { attestations } from './db/schema';
 import type { DecodedSubject } from '$lib/eas/schema';
-import type { ArchCohort, AttestationView, HashGroup, Identity } from '$lib/types';
+import type { ArchCohort, AttestationView, HashGroup, Identity, TargetSummary } from '$lib/types';
 
 export interface StoreParams {
 	subjects: DecodedSubject[];
@@ -41,12 +41,66 @@ export async function storeSubjects(p: StoreParams): Promise<number> {
 	return res.length;
 }
 
-export async function countByProject(): Promise<Record<string, number>> {
+/** Attestation counts keyed by `${project}@${version}` (landing shows the latest release's count). */
+export async function countByProjectVersion(): Promise<Record<string, number>> {
 	const rows = await db
-		.select({ project: attestations.project, n: sql<number>`count(*)::int` })
+		.select({
+			project: attestations.project,
+			version: attestations.version,
+			n: sql<number>`count(*)::int`
+		})
 		.from(attestations)
-		.groupBy(attestations.project);
-	return Object.fromEntries(rows.map((r) => [r.project, r.n]));
+		.groupBy(attestations.project, attestations.version);
+	return Object.fromEntries(rows.map((r) => [`${r.project}@${r.version}`, r.n]));
+}
+
+/**
+ * Per-release, per-target attestation roll-up for a project (the release cards).
+ * Returns version -> targets. positive = attestations agreeing on the dominant
+ * hash in a (version, osArch) cohort; negative = attestations on any other hash.
+ */
+export async function getProjectAttestationSummary(
+	projectId: string
+): Promise<Map<string, TargetSummary[]>> {
+	const rows = await db
+		.select({
+			version: attestations.version,
+			osArch: attestations.osArch,
+			artifactHash: attestations.artifactHash,
+			n: sql<number>`count(*)::int`
+		})
+		.from(attestations)
+		.where(eq(attestations.project, projectId))
+		.groupBy(attestations.version, attestations.osArch, attestations.artifactHash);
+
+	// version -> osArch -> hash -> count
+	const nested = new Map<string, Map<string, Map<string, number>>>();
+	for (const r of rows) {
+		if (!nested.has(r.version)) nested.set(r.version, new Map());
+		const byArch = nested.get(r.version)!;
+		if (!byArch.has(r.osArch)) byArch.set(r.osArch, new Map());
+		byArch.get(r.osArch)!.set(r.artifactHash, r.n);
+	}
+
+	const out = new Map<string, TargetSummary[]>();
+	for (const [version, byArch] of nested) {
+		const targets: TargetSummary[] = [];
+		for (const [osArch, byHash] of byArch) {
+			const counts = [...byHash.values()];
+			const total = counts.reduce((a, b) => a + b, 0);
+			const dominant = Math.max(...counts);
+			targets.push({
+				osArch,
+				positive: dominant,
+				negative: total - dominant,
+				divergent: byHash.size > 1,
+				attested: true
+			});
+		}
+		targets.sort((a, b) => a.osArch.localeCompare(b.osArch));
+		out.set(version, targets);
+	}
+	return out;
 }
 
 function toView(r: typeof attestations.$inferSelect): AttestationView {

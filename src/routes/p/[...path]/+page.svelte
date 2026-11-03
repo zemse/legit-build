@@ -14,36 +14,74 @@
 				<span class="mono text-xl text-emerald-400">{data.release.tag}</span>
 			{/if}
 		</h1>
-		{#if data.view === 'release'}
-			<a
-				href={`/start?project=${encodeURIComponent(data.project.id)}`}
-				class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-emerald-950 transition hover:bg-emerald-400"
-			>
-				Contribute — build &amp; attest
-			</a>
-		{/if}
+		<a
+			href={`/start?project=${encodeURIComponent(data.project.id)}`}
+			class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-emerald-950 transition hover:bg-emerald-400"
+		>
+			Contribute — build &amp; attest
+		</a>
 	</div>
 	<p class="mono mt-2 text-xs text-zinc-500">{data.project.id}</p>
 </section>
 
 {#if data.view === 'project'}
-	<div class="grid gap-2">
-		{#each data.releases as r (r.id)}
+	<div class="grid gap-3">
+		{#each data.cards as c (c.tag)}
 			<a
-				href={releaseHref(data.project.id, r.tag)}
-				class="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/40 px-4 py-3 transition hover:border-zinc-700"
+				href={releaseHref(data.project.id, c.tag)}
+				class="block rounded-xl border border-zinc-800 bg-zinc-900/40 transition hover:border-zinc-700"
 			>
-				<div class="flex items-center gap-3">
-					<span class="mono font-medium">{r.tag}</span>
-					{#if r.prerelease}
-						<span class="rounded bg-amber-950/60 px-1.5 py-0.5 text-xs text-amber-400">pre</span>
-					{/if}
-				</div>
-				<span class="text-xs text-zinc-500">{r.publishedAt ? timeAgo(r.publishedAt) : ''}</span>
+				<header class="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+					<div class="flex items-center gap-3">
+						<span class="mono font-medium">{c.tag}</span>
+						{#if c.prerelease}
+							<span class="rounded bg-amber-950/60 px-1.5 py-0.5 text-xs text-amber-400">pre</span>
+						{/if}
+					</div>
+					<div class="flex items-center gap-3 text-xs text-zinc-500">
+						<span>{c.totalAttestations} attestation{c.totalAttestations === 1 ? '' : 's'}</span>
+						<span>{c.publishedAt ? timeAgo(c.publishedAt) : ''}</span>
+					</div>
+				</header>
+
+				{#if c.targets.length > 0}
+					<ul class="divide-y divide-zinc-800/70">
+						{#each c.targets as t (t.osArch)}
+							<li class="flex items-center justify-between px-4 py-2 text-sm">
+								<span class="mono text-zinc-300">{t.osArch}</span>
+								{#if t.attested}
+									<span class="flex items-center gap-3">
+										<span
+											class="text-emerald-400"
+											title="attestations agreeing on the dominant hash"
+										>
+											✓ {t.positive}
+										</span>
+										<span
+											class={t.negative > 0 ? 'text-red-400' : 'text-zinc-600'}
+											title="attestations on a divergent hash"
+										>
+											✗ {t.negative}
+										</span>
+										{#if t.divergent}
+											<span class="rounded bg-red-950/60 px-1.5 py-0.5 text-xs text-red-300">
+												divergent
+											</span>
+										{/if}
+									</span>
+								{:else}
+									<span class="text-xs text-zinc-600">no attestations yet</span>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p class="px-4 py-3 text-sm text-zinc-600">No targets or attestations yet.</p>
+				{/if}
 			</a>
 		{:else}
 			<p class="rounded-lg border border-zinc-800 bg-zinc-900/40 p-4 text-sm text-zinc-400">
-				No releases cached yet. The poller backfills on a cron.
+				No releases cached yet. The poller backfills daily.
 			</p>
 		{/each}
 	</div>

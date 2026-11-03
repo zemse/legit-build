@@ -78,3 +78,21 @@ export interface ArchCohort {
 	groups: HashGroup[];
 	divergent: boolean; // >1 distinct hash within this cohort
 }
+
+/** Per-target roll-up for a release card (project page). */
+export interface TargetSummary {
+	osArch: OsArch;
+	positive: number; // attestations agreeing on the dominant hash
+	negative: number; // attestations on a divergent hash
+	divergent: boolean;
+	attested: boolean; // false = declared by the release but not yet attested
+}
+
+export interface ReleaseCard {
+	tag: string;
+	publishedAt: string | null;
+	prerelease: boolean;
+	url: string | null;
+	targets: TargetSummary[];
+	totalAttestations: number;
+}

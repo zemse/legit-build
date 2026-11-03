@@ -100,25 +100,25 @@ async function ghResolveCommit(ref: ProjectRef, tag: string): Promise<string | n
 
 async function pollGithub(ref: ProjectRef, limit: number): Promise<PolledRelease[]> {
 	const repo = `${ref.owner}/${ref.repo}`;
-	const res = await fetch(`${GH}/repos/${repo}/releases?per_page=${limit}`, {
+	const perPage = Math.min(limit, 100);
+	const res = await fetch(`${GH}/repos/${repo}/releases?per_page=${perPage}`, {
 		headers: ghHeaders()
 	});
 	if (!res.ok) throw new Error(`GitHub releases ${repo}: ${res.status}`);
 	const raw = (await res.json()) as GhRelease[];
-	const out: PolledRelease[] = [];
-	for (const r of raw) {
-		if (r.draft) continue;
-		out.push({
+	// Commit is resolved lazily (ghResolveCommit) when a release is first viewed,
+	// so the cron stays one request per project even across deep history.
+	return raw
+		.filter((r) => !r.draft)
+		.map((r) => ({
 			tag: r.tag_name,
 			name: r.name,
 			url: r.html_url,
 			prerelease: r.prerelease,
 			publishedAt: r.published_at,
 			platforms: platformsFromNames(r.assets.map((a) => a.name)),
-			commit: await ghResolveCommit(ref, r.tag_name)
-		});
-	}
-	return out;
+			commit: null
+		}));
 }
 
 // ---- GitLab ----
@@ -159,8 +159,8 @@ async function pollGitlab(ref: ProjectRef, limit: number): Promise<PolledRelease
 	}));
 }
 
-/** Poll the most recent `limit` releases for a project, newest first. */
-export async function pollReleases(ref: ProjectRef, limit = 8): Promise<PolledRelease[]> {
+/** Poll the most recent `limit` releases for a project (full history up to 100), newest first. */
+export async function pollReleases(ref: ProjectRef, limit = 100): Promise<PolledRelease[]> {
 	switch (ref.forge) {
 		case 'github':
 			return pollGithub(ref, limit);
@@ -169,4 +169,10 @@ export async function pollReleases(ref: ProjectRef, limit = 8): Promise<PolledRe
 		default:
 			throw new Error(`Unsupported forge: ${ref.forge}`);
 	}
+}
+
+/** Resolve a tag -> commit sha on demand (GitHub only; GitLab returns it inline). */
+export async function resolveCommit(ref: ProjectRef, tag: string): Promise<string | null> {
+	if (ref.forge === 'github') return ghResolveCommit(ref, tag);
+	return null;
 }
