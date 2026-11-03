@@ -1,0 +1,9 @@
+{
+  "project": "github/prysmaticlabs/prysm",
+  "artifactPath": "artifact/beacon-chain",
+  "osArch": ["linux/amd64"],
+  "requiresDocker": false,
+  "toolchain": { "bazel": "7.4.1 (.bazelversion)", "note": "NO DOCKER — Bazel + hermetic Go/zig-CC toolchains; host needs bazelisk + a JDK" },
+  "reproducible": "full",
+  "notes": "NO-DOCKER recipe (the /contribute Docker-required note does not apply to Prysm). Bazel is fully hermetic; the only nondeterminism is the --stamp build date, which this recipe pins to the source commit date so all rebuilders converge. The resulting hash is deterministic across rebuilders but will differ from the official release (which stamped the real CI build time); that is expected under legit.build's rebuilder-agreement model. Both beacon-chain and validator reproduced bit-for-bit in testing when the date was pinned."
+}
