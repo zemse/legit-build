@@ -140,7 +140,7 @@
 			class="flex flex-col items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 text-center"
 		>
 			<p class="text-zinc-400">No attestations yet for this release.</p>
-			<ContributeButton projects={[data.project.id]} label="Be the first — build &amp; attest" />
+			<ContributeButton projects={[data.project.id]} label="Be the first to build &amp; attest" />
 		</div>
 	{/each}
 {/if}

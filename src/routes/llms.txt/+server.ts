@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	const body = `# legit.build
 
 > Public attestations that a software release builds to a given binary hash.
-> We do not run builds and do not prove honesty — we record claims and surface
+> We do not run builds and do not prove honesty; we record claims and surface
 > agreement and divergence across independent builders.
 
 ## Projects

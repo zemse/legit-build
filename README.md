@@ -2,7 +2,7 @@
 
 Public attestation site for software binary reproducibility. Lists every tracked project
 (forge-qualified: `github/owner/repo`, `gitlab/owner/repo`), its releases, and independent
-attestations that a release builds to a given binary hash — grouped by target architecture,
+attestations that a release builds to a given binary hash, grouped by target architecture,
 with divergence flagged. Builders run the build themselves (agent relay) and sign the result
 with a wallet (EAS off-chain) or Twitter (trusted issuer). Seeded with the Ethereum clients.
 

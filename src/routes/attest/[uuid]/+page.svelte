@@ -92,7 +92,7 @@
 	const stateLabel: Record<string, string> = {
 		created: 'Waiting for your agent to connect…',
 		building: 'Building…',
-		results_ready: 'Results ready — review and sign',
+		results_ready: 'Results ready: review and sign',
 		attested: 'Attested',
 		expired: 'Session expired',
 		abandoned: 'Session abandoned'

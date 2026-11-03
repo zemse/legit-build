@@ -4,14 +4,14 @@ import { projects } from '$lib/server/db/schema';
 import { BATCH_SCHEMA } from '$lib/eas/schema';
 import type { RequestHandler } from './$types';
 
-// GET /llms-full.txt  — the inline, fuller version (spec §6, llmstxt.org).
+// GET /llms-full.txt  : the inline, fuller version (spec §6, llmstxt.org).
 export const GET: RequestHandler = async ({ url }) => {
 	const rows = await db.select().from(projects);
 	const list = rows
 		.map((p) => `- ${p.name ?? p.repo} (${p.id})${p.layer ? ` [${p.layer}, ${p.lang}]` : ''}`)
 		.join('\n');
 
-	const body = `# legit.build — full instructions
+	const body = `# legit.build: full instructions
 
 ## What this is
 
@@ -22,7 +22,7 @@ Two attestation paths:
 - Twitter: the builder authenticates with X; the backend (trusted issuer) signs on their behalf.
 
 We do not run builds. Agents/users run them on their own machine, AWS, or a sandbox.
-We do not prove a build is honest — we surface agreement and divergence (N-of-M corroboration).
+We do not prove a build is honest; we surface agreement and divergence (N-of-M corroboration).
 
 ## Tracked projects
 
@@ -33,7 +33,7 @@ ${list}
 Honest builds on the SAME os/arch should converge only if the recipe pins toolchain version,
 SOURCE_DATE_EPOCH, build flags, and the container base image by digest. Recipes live in a
 separate repo (WIP). Builders report their own os/arch; the site compares per architecture,
-so cross-arch differences are expected and not flagged — only divergence within a cohort is.
+so cross-arch differences are expected and not flagged; only divergence within a cohort is.
 
 ## Flow
 

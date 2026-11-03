@@ -1,5 +1,5 @@
 // Seed set of tracked projects (spec §4, from the build audit [05]). Identity is
-// forge-qualified so new repos — on GitHub or GitLab — can be added by appending
+// forge-qualified so new repos (on GitHub or GitLab) can be added by appending
 // rows here and re-running `pnpm db:seed`.
 
 export interface ProjectSeed {

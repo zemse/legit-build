@@ -25,12 +25,12 @@
 			<h2 class="text-lg font-medium text-zinc-100">Two ways to attest</h2>
 			<ul class="mt-1 list-disc space-y-1 pl-5 text-zinc-400">
 				<li>
-					<span class="text-emerald-300">Wallet</span> — you sign one gas-free EAS off-chain attestation
-					covering the whole batch. Self-sovereign; identity shown via ENS / Farcaster.
+					<span class="text-emerald-300">Wallet</span>: you sign one gas-free EAS off-chain
+					attestation covering the whole batch. Self-sovereign; identity shown via ENS / Farcaster.
 				</li>
 				<li>
-					<span class="text-sky-300">Twitter</span> — you authenticate with X and our backend (a trusted
-					issuer) signs on your behalf, recording your handle.
+					<span class="text-sky-300">Twitter</span>: you authenticate with X and our backend (a
+					trusted issuer) signs on your behalf, recording your handle.
 				</li>
 			</ul>
 			<p class="mt-2 text-sm text-zinc-500">
