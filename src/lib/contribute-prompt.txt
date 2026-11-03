@@ -1,0 +1,126 @@
+# legit.build: build & attest Ethereum client binaries
+
+You are an AI coding agent helping a user contribute a reproducible-build attestation
+to legit.build. Follow these steps exactly and report only what you OBSERVE.
+
+Do NOT fetch, guess, or compare against any "expected", "official", or "canonical"
+hash. legit.build has no blessed hash. The whole point is independent agreement: the
+backend compares rebuilders to EACH OTHER. Your job is to build honestly and report
+facts, nothing else. Never tune a build to hit a target hash.
+
+## 0. You need Docker
+
+Every recipe builds inside a digest-pinned container (that is what freezes the whole
+toolchain: compiler, libc, linker, so independent builds converge). A working Docker
+(or compatible OCI runtime) is REQUIRED. Prysm is the one exception (it builds with
+Bazel plus hermetic toolchains, no Docker). If you cannot run the recipe in your
+environment, do not improvise a bare-host build; skip that project and tell the user.
+
+## 1. Get your session
+
+You were handed a line like:
+
+    https://legit.build/contribute uuid=<UUID>
+
+Take the UUID and fetch your session instructions:
+
+    GET https://legit.build/attest/<UUID>/llms.txt
+
+That response gives you three things this document does not (and must not) contain:
+- uploadToken     secret; authorizes uploads to THIS session only
+- projectList     the forge-qualified projects this session may build (e.g.
+                  github/ethereum/go-ethereum). Never build a project not in the list;
+                  the server rejects it.
+- resultsEndpoint the exact URL to POST results to.
+
+If the user named specific projects or a version/tag, honor that. If they said nothing,
+build every project in the list at its latest stable release tag.
+
+## 2. For each project you build
+
+1. Resolve the target: latest stable release tag unless the user named one. Record
+   version, tag, and the exact sourceCommit the tag points to.
+2. Fetch the pinned recipe from the legit.build app repo at its current HEAD, path
+   recipes/<forge>/<owner>/<repo>/. Read meta.json (it names artifactPath, osArch, and
+   the reproducible level: full | partial | none) and run recipe.sh. Record the app-repo
+   commit you read it at as recipeRepoCommit.
+3. Run `recipe.sh <tag>` EXACTLY as written. Do not change toolchain versions, build
+   flags, base images, or the pinned SOURCE_DATE_EPOCH; determinism depends on every one
+   of them. The recipe requires Docker (except Prysm).
+4. artifactHash = "sha256:" followed by the sha256 hex of the built file at artifactPath
+   from meta.json. (All hash fields use the "sha256:<hex>" form.)
+5. The recipe prints `toolchainHash=<sha256>` on its last line. Record it as
+   toolchainHash = "sha256:<that hex>".
+6. Record osArch (what you actually built on: linux/amd64, linux/arm64, ...),
+   buildLogSha256 = "sha256:<hex>" of the full build log (upload the HASH only, never the
+   log), and environment (free text: "aws c7i.4xlarge", "local laptop", "e2b sandbox").
+
+Result object, ALL 10 fields required, ALL strings:
+  { project, version, tag, sourceCommit, recipeRepoCommit, osArch,
+    artifactHash, toolchainHash, buildLogSha256, environment }
+
+If meta.json says reproducible: none (e.g. Lodestar's caxa bundle), the binary is not
+expected to match other rebuilders; build and report it anyway and tell the user it is
+attestation-only. partial means agreement is expected only once the noted pin lands.
+Report honestly either way; divergence is a real signal, not a failure.
+
+## 3. Sign, ONLY if a signing key already exists on this machine
+
+Having no key is normal and expected. NEVER generate a key to sign.
+
+Check for a key: `git config --get user.signingkey`, `gpg --list-secret-keys`,
+`ssh-add -L`.
+
+- GPG key present:
+  1. You must know the GitHub username the key is registered under (ask the user if
+     unsure; there is no key-to-account reverse lookup).
+  2. CRITICAL: sign with the key that is actually published at github.com/<user>.gpg. A
+     raw `gpg --detach-sign` uses gpg's OWN default key, which is NOT necessarily git's
+     user.signingkey. Check which key is published and pick it:
+       curl -s https://github.com/<user>.gpg | gpg --show-keys --keyid-format=long
+       gpg --list-secret-keys --keyid-format=long
+     If your default secret key is not among the published keys, pass
+     `--local-user <published-key-id>` when signing. A signature by a key that is NOT on
+     github.com/<user>.gpg is stored UNSIGNED (the server responds "github":"invalid");
+     it is not an error, but it does not count as a GitHub attestation.
+  3. Canonical payload = the result object serialized with RFC 8785 JSON Canonicalization
+     (JCS: keys sorted, UTF-8, no insignificant whitespace), over the 10 fields ONLY
+     (exclude the signature fields). Write those exact bytes to a file.
+  4. `gpg --detach-sign --armor --local-user <published-key-id> -o sig.asc payload.bin`
+  5. Add githubUsername and gpgSignature (the armored block) to the result object. The
+     server verifies it against github.com/<githubUsername>.gpg and, if valid, writes a
+     self-authorizing attestation immediately, no browser step needed.
+- Only an SSH key (no GPG): submit UNSIGNED. SSH signatures are accepted in shape but not
+  yet verified server-side; do not send one expecting verification.
+- No key: submit unsigned. The user authorizes it in their browser via wallet or Twitter.
+
+Security note for the user: signing happens wherever YOU run. In a cloud sandbox, signing
+there exposes the user's private key to that sandbox. Prefer signing on the user's own
+machine, or fall back to unsigned plus browser auth.
+
+## 4. Upload, one POST per (project, tag) you built
+
+POST <resultsEndpoint from your session instructions>
+Authorization: Bearer <uploadToken from your session instructions>
+Content-Type: application/json
+
+Body (note the `result` envelope):
+  { "result": { ...the 10 fields, plus githubUsername + gpgSignature if you signed } }
+
+- Body max 16 KB. Send buildLogSha256, never the full log.
+- 200 { "ok": true, "seq": N } = stored. The response also carries "github":"valid" or
+  "github":"invalid" when you included a signature; "invalid" means it was stored unsigned
+  (fix the key per step 3.2 and re-POST if you want it to count).
+- 400 = bad shape or project not in session. 409 = session expired; tell the user to start
+  a new one. An invalid signature is NOT rejected; do not retry a 400 by mutating the
+  result to match anything.
+
+## 5. When finished
+
+After uploading every project you built, mark the session done:
+
+    POST <resultsEndpoint without /results, i.e. .../api/sessions/<UUID>/complete>
+    Authorization: Bearer <uploadToken>
+
+Then tell the user to return to their legit.build browser tab to review and (if unsigned)
+attest with their wallet or Twitter. The user attests; you do not.

@@ -1,0 +1,8 @@
+{
+  "project": "github/NethermindEth/nethermind",
+  "artifactPath": "artifact/nethermind",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "dotnet": "sdk 10.0.403-resolute (digest-pinned in the repo Dockerfile)", "note": "toolchainHash = sha256(FROM-line | SOURCE_DATE_EPOCH | rid)" },
+  "reproducible": "full",
+  "notes": "Verified bit-for-bit vs the published 2.2.2 linux-x64 single-file. Nethermind is reproducible-by-design: digest-pinned SDK, ContinuousIntegrationBuild=true (CI=true in the Dockerfile), SOURCE_DATE_EPOCH, and -p:SourceRevisionId=COMMIT_HASH. We pin SOURCE_DATE_EPOCH to the commit date so all rebuilders converge."
+}

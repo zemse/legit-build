@@ -1,9 +1,12 @@
 import { text } from '@sveltejs/kit';
+import contributePrompt from '$lib/contribute-prompt.txt?raw';
 import type { RequestHandler } from './$types';
 
 // GET /contribute  (the pasted line is "<origin>/contribute uuid=xxxx")
-// Content-negotiated. Agents (text/plain) get the bootstrap prompt; browsers get a pointer.
-// NOTE: the prompt body is a PLACEHOLDER; the final wording is WIP in another workstream.
+// Content-negotiated. Agents (text/plain) get the context-free bootstrap prompt;
+// browsers get a pointer. The prompt is generic and carries NO session secret: the
+// agent fetches /attest/<uuid>/llms.txt for the uploadToken + projects (two-hop,
+// spec §7 capability model). Canonical source: src/lib/contribute-prompt.txt.
 export const GET: RequestHandler = ({ request, url }) => {
 	const accept = request.headers.get('accept') ?? '';
 	if (accept.includes('text/html')) {
@@ -17,21 +20,7 @@ export const GET: RequestHandler = ({ request, url }) => {
 		);
 	}
 
-	const prompt = `# legit.build: contribution bootstrap (PLACEHOLDER, WIP)
-
-You were given a line like:
-
-    ${url.origin}/contribute uuid=<UUID>
-
-Take the UUID from that line and fetch the session-scoped instructions:
-
-    GET ${url.origin}/attest/<UUID>/llms.txt
-
-Follow those instructions exactly: build only the pinned recipe for each listed project,
-then POST each result and finally POST /complete using the upload token given there.
-Report your own os/arch; the site compares builds per architecture.
-
-(The final version of this prompt is being derived by actually building the projects.)
-`;
+	// Point the example URLs at this deployment's origin (prod, preview, local).
+	const prompt = contributePrompt.replaceAll('https://legit.build', url.origin);
 	return text(prompt, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 };

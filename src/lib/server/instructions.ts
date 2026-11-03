@@ -3,7 +3,8 @@ import { db } from './db';
 import { projects, releases } from './db/schema';
 import type { Session } from './db/schema';
 
-const RECIPES_REPO = 'https://github.com/legit-build/recipes'; // placeholder until recipes land
+// Recipes live in this app repo under recipes/<forge>/<owner>/<repo>/ (spec 12).
+const RECIPES_REPO = 'https://github.com/zemse/legit-build';
 
 /**
  * Markdown instructions scoped to one session (spec §6, §8). Served to the agent.
@@ -52,10 +53,13 @@ ${targets || '_No projects resolved; the session may be empty._'}
 
 ## Recipe (pinned)
 
-Each project has a deterministic recipe in the recipes repo (WIP): ${RECIPES_REPO}
-A recipe pins toolchain version, SOURCE_DATE_EPOCH, flags, and the container base image by
-digest so honest builds on the same os/arch converge. Report your os/arch as you built it;
-the site groups and compares per target architecture; it does not require a specific one.
+Each project has a deterministic recipe in this app repo at HEAD, path
+\`recipes/<forge>/<owner>/<repo>/\` (${RECIPES_REPO}). Read \`meta.json\` (artifactPath,
+osArch, reproducible: full|partial|none) and run \`recipe.sh <tag>\`. A recipe pins the
+toolchain version, SOURCE_DATE_EPOCH, flags, and the container base image by digest so
+honest builds on the same os/arch converge. Record the app-repo commit you read it at as
+\`recipeRepoCommit\`. Report your os/arch as you built it; the site groups and compares per
+target architecture, it does not require a specific one. Full generic protocol: ${origin}/contribute
 
 ## For each project, POST the result as soon as it finishes
 

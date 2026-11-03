@@ -1,0 +1,8 @@
+{
+  "project": "github/ethereum/go-ethereum",
+  "artifactPath": "artifact/geth",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "go": "1.27.3", "base": "ubuntu@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852 (ubuntu:24.04, gcc 13.3.0)", "note": "toolchainHash = sha256(baseImage | gcc --version | go-version | target-triple)" },
+  "reproducible": "full",
+  "notes": "Verified bit-for-bit vs the published v1.17.10 release binary (sha256 45335929…) with this exact base-image digest + gcc 13.3.0 + go1.27.3. The Go layer is already deterministic; the only variable was the CGO C compiler, frozen by the pinned base image. Agreement holds while the Ubuntu 24.04 gcc stays 13.3.0; re-pin the digest if that moves."
+}

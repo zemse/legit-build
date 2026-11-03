@@ -163,7 +163,7 @@
 						{:else if r.githubSig?.status === 'invalid'}
 							<span
 								class="rounded-full border border-amber-700/50 bg-amber-950/40 px-2 py-0.5 text-xs text-amber-300"
-								title="GitHub signature did not verify; attest with your wallet or Twitter instead"
+								title={`GitHub signature did not verify${r.githubSig.login ? ` for @${r.githubSig.login}` : ''}. Most likely it was signed with a key not published on github.com/${r.githubSig.login || '<user>'}.gpg. Attest with your wallet or Twitter instead.`}
 							>
 								GitHub sig invalid
 							</span>
