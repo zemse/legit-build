@@ -1,6 +1,7 @@
 <script lang="ts">
+	import ContributeButton from '$lib/components/ContributeButton.svelte';
 	import IdentityPill from '$lib/components/IdentityPill.svelte';
-	import { projectHref, releaseHref, shortHash, timeAgo } from '$lib/format';
+	import { releaseHref, shortHash, timeAgo } from '$lib/format';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 </script>
@@ -14,12 +15,7 @@
 				<span class="mono text-xl text-emerald-400">{data.release.tag}</span>
 			{/if}
 		</h1>
-		<a
-			href={`/start?project=${encodeURIComponent(data.project.id)}`}
-			class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-emerald-950 transition hover:bg-emerald-400"
-		>
-			Contribute — build &amp; attest
-		</a>
+		<ContributeButton projects={[data.project.id]} label="Build &amp; attest" />
 	</div>
 	<p class="mono mt-2 text-xs text-zinc-500">{data.project.id}</p>
 </section>
@@ -140,14 +136,11 @@
 			</div>
 		</section>
 	{:else}
-		<div class="rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 text-center">
+		<div
+			class="flex flex-col items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 text-center"
+		>
 			<p class="text-zinc-400">No attestations yet for this release.</p>
-			<a
-				href={`/start?project=${encodeURIComponent(data.project.id)}`}
-				class="mt-3 inline-block rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-emerald-950 hover:bg-emerald-400"
-			>
-				Be the first — build &amp; attest
-			</a>
+			<ContributeButton projects={[data.project.id]} label="Be the first — build &amp; attest" />
 		</div>
 	{/each}
 {/if}

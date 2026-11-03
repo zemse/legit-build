@@ -1,10 +1,10 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { and, eq, lt } from 'drizzle-orm';
+import { and, eq, inArray, lt } from 'drizzle-orm';
 import { db } from './db';
 import { sessions } from './db/schema';
 import type { BuildResult, SessionPublic, SessionState } from '$lib/types';
 
-const DEFAULT_TTL = 7200; // 2h (spec §7)
+const DEFAULT_TTL = 72 * 3600; // 72h of inactivity; extended on each result (spec §7)
 export const MAX_PROJECTS = 20;
 export const MAX_RESULT_BYTES = 16 * 1024;
 
@@ -100,7 +100,9 @@ export async function expireStale(): Promise<number> {
 	const res = await db
 		.update(sessions)
 		.set({ state: 'expired' })
-		.where(and(lt(sessions.expiresAt, new Date()), eq(sessions.state, 'building')))
+		.where(
+			and(lt(sessions.expiresAt, new Date()), inArray(sessions.state, ['created', 'building']))
+		)
 		.returning({ uuid: sessions.uuid });
 	return res.length;
 }

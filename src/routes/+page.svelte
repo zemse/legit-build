@@ -1,9 +1,14 @@
 <script lang="ts">
+	import ContributeButton from '$lib/components/ContributeButton.svelte';
 	import { projectHref, releaseHref, timeAgo } from '$lib/format';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 
 	type Row = PageData['execution'][number];
+
+	const allProjectIds = $derived(
+		[...data.execution, ...data.consensus, ...data.other].map((p) => p.id)
+	);
 </script>
 
 <section class="py-8">
@@ -13,6 +18,11 @@
 		target architecture, with divergence flagged. Or build the projects yourself and attest the
 		result.
 	</p>
+	{#if allProjectIds.length > 0}
+		<div class="mt-5">
+			<ContributeButton projects={allProjectIds} label="Build &amp; attest" />
+		</div>
+	{/if}
 </section>
 
 {#snippet projectList(title: string, rows: Row[])}
