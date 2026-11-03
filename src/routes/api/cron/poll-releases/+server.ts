@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { sql } from 'drizzle-orm';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { clients, releases } from '$lib/server/db/schema';
@@ -40,10 +41,10 @@ export const GET: RequestHandler = async ({ request }) => {
 				.onConflictDoUpdate({
 					target: releases.id,
 					set: {
-						commit: releases.commit,
-						platforms: releases.platforms,
-						name: releases.name,
-						url: releases.url
+						commit: sql`excluded.commit`,
+						platforms: sql`excluded.platforms`,
+						name: sql`excluded.name`,
+						url: sql`excluded.url`
 					}
 				});
 			summary[c.id] = rows.length;

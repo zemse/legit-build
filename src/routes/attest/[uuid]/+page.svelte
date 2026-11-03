@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import IdentityPill from '$lib/components/IdentityPill.svelte';
 	import { shortHash } from '$lib/format';
 	import type { BuildResult, SessionPublic } from '$lib/types';
@@ -7,7 +7,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let session = $state<SessionPublic>(data.session);
+	let session = $state<SessionPublic>(untrack(() => data.session));
 	let liveLog = $state<string[]>([]);
 	let copied = $state(false);
 
@@ -145,7 +145,11 @@
 				<div class="flex items-center justify-between rounded-lg bg-zinc-900/60 px-3 py-2">
 					<div class="flex items-center gap-3">
 						{#if session.state === 'results_ready'}
-							<input type="checkbox" bind:checked={approved[i]} class="h-4 w-4 accent-emerald-500" />
+							<input
+								type="checkbox"
+								bind:checked={approved[i]}
+								class="h-4 w-4 accent-emerald-500"
+							/>
 						{/if}
 						<span class="font-medium">{r.client}</span>
 						<span class="mono text-xs text-zinc-500">{r.osArch}</span>
@@ -168,11 +172,13 @@
 	<section class="rounded-xl border border-emerald-900/50 bg-emerald-950/10 p-5">
 		<h2 class="text-lg font-medium">Attest the results you approve</h2>
 		<p class="mt-1 text-sm text-zinc-400">
-			You'll attest {approvedResults.length} of {session.results.length} result(s) in a single
-			signature. Exactly this is recorded:
+			You'll attest {approvedResults.length} of {session.results.length} result(s) in a single signature.
+			Exactly this is recorded:
 		</p>
 
-		<div class="mono mt-3 max-h-48 overflow-y-auto rounded-lg border border-zinc-800 bg-black/40 p-3 text-xs text-zinc-300">
+		<div
+			class="mono mt-3 max-h-48 overflow-y-auto rounded-lg border border-zinc-800 bg-black/40 p-3 text-xs text-zinc-300"
+		>
 			{#each approvedResults as r (r.client + r.artifactHash)}
 				<div>{r.client} {r.version} {r.osArch} → {shortHash(r.artifactHash, 16, 10)}</div>
 			{:else}
@@ -181,12 +187,16 @@
 		</div>
 
 		{#if msg}
-			<p class="mt-3 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-300">
+			<p
+				class="mt-3 rounded-lg border border-emerald-800/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-300"
+			>
 				{msg}
 			</p>
 		{/if}
 		{#if err}
-			<p class="mt-3 rounded-lg border border-red-800/60 bg-red-950/40 px-3 py-2 text-sm text-red-300">
+			<p
+				class="mt-3 rounded-lg border border-red-800/60 bg-red-950/40 px-3 py-2 text-sm text-red-300"
+			>
 				{err}
 			</p>
 		{/if}

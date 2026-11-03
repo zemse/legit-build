@@ -110,8 +110,7 @@ export function buildCohorts(views: AttestationView[]): ArchCohort[] {
 	}
 	// Cohorts with the most attestations first.
 	out.sort(
-		(a, b) =>
-			b.groups.reduce((s, g) => s + g.count, 0) - a.groups.reduce((s, g) => s + g.count, 0)
+		(a, b) => b.groups.reduce((s, g) => s + g.count, 0) - a.groups.reduce((s, g) => s + g.count, 0)
 	);
 	return out;
 }

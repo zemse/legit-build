@@ -49,7 +49,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	const parsed = JSON.parse(raw) as { result?: unknown };
 	const result = validate(parsed.result);
 	if (!result) throw error(400, 'invalid result shape');
-	if (!row.clients.includes(result.client)) throw error(400, `client ${result.client} not in session`);
+	if (!row.clients.includes(result.client))
+		throw error(400, `client ${result.client} not in session`);
 
 	const seq = await appendResult(params.uuid, result);
 	if (seq === null) throw error(409, 'session not accepting results (expired?)');

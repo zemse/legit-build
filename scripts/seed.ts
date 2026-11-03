@@ -1,5 +1,6 @@
 // Seed/refresh the clients table. Standalone (no SvelteKit aliases): run with `pnpm db:seed`.
 import { neon } from '@neondatabase/serverless';
+import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { CLIENTS } from '../src/lib/clients-seed.ts';
 import { clients } from '../src/lib/server/db/schema.ts';
@@ -23,10 +24,10 @@ await db
 	.onConflictDoUpdate({
 		target: clients.id,
 		set: {
-			name: clients.name,
-			repo: clients.repo,
-			layer: clients.layer,
-			lang: clients.lang
+			name: sql`excluded.name`,
+			repo: sql`excluded.repo`,
+			layer: sql`excluded.layer`,
+			lang: sql`excluded.lang`
 		}
 	});
 

@@ -22,7 +22,8 @@ export async function signIssuerAttestation(
 	const provider = new ethers.JsonRpcProvider(RPC);
 	const signer = new ethers.Wallet(pk, provider);
 	const eas = new EAS(EAS_CONTRACT);
-	eas.connect(signer);
+	// ethers v6 Wallet satisfies the SDK's signer interface at runtime.
+	eas.connect(signer as unknown as Parameters<typeof eas.connect>[0]);
 
 	const offchain = await eas.getOffchain();
 	const signed = await offchain.signOffchainAttestation(
@@ -57,14 +58,17 @@ export function reviveSigned(obj: Record<string, unknown>): SignedOffchainAttest
 }
 
 /** Verify a wallet-signed off-chain attestation (spec §5.3: API verifies signature). */
-export async function verifyOffchain(signed: SignedOffchainAttestation): Promise<boolean> {
+export async function verifyOffchain(
+	attester: string,
+	signed: SignedOffchainAttestation
+): Promise<boolean> {
 	try {
 		const provider = new ethers.JsonRpcProvider(RPC);
 		const eas = new EAS(EAS_CONTRACT);
-		eas.connect(provider);
+		eas.connect(provider as unknown as Parameters<typeof eas.connect>[0]);
 		const offchain = await eas.getOffchain();
-		// Recovered signer must equal the claimed attester in signed.message.
-		return offchain.verifyOffchainAttestationSignature(signed.signer, signed);
+		// Recovered signer must equal the claimed attester.
+		return offchain.verifyOffchainAttestationSignature(attester, signed);
 	} catch {
 		return false;
 	}

@@ -77,7 +77,10 @@ export async function resolveIdentity(addressRaw: string): Promise<ResolvedIdent
 		accountAgeDays: null as number | null,
 		refreshedAt: new Date()
 	};
-	await db.insert(identityCache).values(row).onConflictDoUpdate({ target: identityCache.address, set: row });
+	await db
+		.insert(identityCache)
+		.values(row)
+		.onConflictDoUpdate({ target: identityCache.address, set: row });
 	return row;
 }
 

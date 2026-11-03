@@ -36,7 +36,10 @@ export const releases = pgTable(
 		name: text('name'),
 		url: text('url'),
 		prerelease: boolean('prerelease').notNull().default(false),
-		platforms: jsonb('platforms').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+		platforms: jsonb('platforms')
+			.$type<string[]>()
+			.notNull()
+			.default(sql`'[]'::jsonb`),
 		publishedAt: timestamp('published_at', { withTimezone: true }),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
@@ -56,7 +59,10 @@ export const sessions = pgTable(
 		clients: jsonb('clients').$type<string[]>().notNull(),
 		instructions: text('instructions'),
 		state: text('state').$type<SessionState>().notNull().default('created'),
-		results: jsonb('results').$type<BuildResult[]>().notNull().default(sql`'[]'::jsonb`),
+		results: jsonb('results')
+			.$type<BuildResult[]>()
+			.notNull()
+			.default(sql`'[]'::jsonb`),
 		// Monotonic cursor so SSE can resume via Last-Event-ID.
 		seq: integer('seq').notNull().default(0),
 		ttl: integer('ttl').notNull().default(7200), // seconds

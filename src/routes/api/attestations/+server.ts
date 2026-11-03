@@ -20,11 +20,8 @@ export const POST: RequestHandler = async ({ request }) => {
 	const signed = reviveSigned(body.signed);
 	const signer = body.signer.toLowerCase();
 
-	// The claimed signer must match the recovered signer.
-	if (signed.signer && signed.signer.toLowerCase() !== signer) {
-		throw error(400, 'signer mismatch');
-	}
-	const ok = await verifyOffchain(signed);
+	// Recover + check the signature was made by the claimed signer.
+	const ok = await verifyOffchain(signer, signed);
 	if (!ok) throw error(400, 'invalid off-chain signature');
 
 	const subjects = decodeBatch(signed.message.data);

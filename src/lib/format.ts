@@ -15,7 +15,7 @@ export function identityLabel(id: Identity): string {
 	return id.ens || shortAddr(id.address);
 }
 
-export function timeAgo(iso: string): string {
+export function timeAgo(iso: string | Date): string {
 	const d = Date.now() - new Date(iso).getTime();
 	const s = Math.floor(d / 1000);
 	if (s < 60) return `${s}s ago`;

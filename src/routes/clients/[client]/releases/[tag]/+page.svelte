@@ -52,7 +52,8 @@
 					{cohort.groups.length} competing hashes
 				</span>
 			{:else}
-				<span class="rounded bg-emerald-950/50 px-2 py-0.5 text-xs text-emerald-300">agreement</span>
+				<span class="rounded bg-emerald-950/50 px-2 py-0.5 text-xs text-emerald-300">agreement</span
+				>
 			{/if}
 		</header>
 

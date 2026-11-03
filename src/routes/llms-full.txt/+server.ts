@@ -7,7 +7,9 @@ import type { RequestHandler } from './$types';
 // GET /llms-full.txt  — the inline, fuller version (spec §6, llmstxt.org).
 export const GET: RequestHandler = async ({ url }) => {
 	const rows = await db.select().from(clients);
-	const list = rows.map((c) => `- ${c.name} (${c.id}) — ${c.repo} [${c.layer}, ${c.lang}]`).join('\n');
+	const list = rows
+		.map((c) => `- ${c.name} (${c.id}) — ${c.repo} [${c.layer}, ${c.lang}]`)
+		.join('\n');
 
 	const body = `# legit.build — full instructions
 

@@ -58,9 +58,7 @@ export async function siweSignIn(signer: Signer, address: string): Promise<void>
 
 /** Convert a signed attestation (with bigint fields) into a JSON-safe object. */
 function toJsonSafe(signed: SignedOffchainAttestation): Record<string, unknown> {
-	return JSON.parse(
-		JSON.stringify(signed, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))
-	);
+	return JSON.parse(JSON.stringify(signed, (_k, v) => (typeof v === 'bigint' ? v.toString() : v)));
 }
 
 export async function signBatch(
@@ -69,7 +67,7 @@ export async function signBatch(
 ): Promise<{ signed: Record<string, unknown>; signer: string }> {
 	if (!EAS_SCHEMA_UID) throw new Error('EAS schema UID not configured (PUBLIC_EAS_SCHEMA_UID)');
 	const eas = new EAS(EAS_CONTRACT);
-	eas.connect(signer);
+	eas.connect(signer as unknown as Parameters<typeof eas.connect>[0]);
 	const offchain = await eas.getOffchain();
 	const signed = await offchain.signOffchainAttestation(
 		{

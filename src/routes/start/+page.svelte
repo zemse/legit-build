@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { saveUploadToken } from '$lib/session-token';
@@ -7,7 +8,9 @@
 
 	const prefill = page.url.searchParams.get('client');
 	let selected = $state<Record<string, boolean>>(
-		Object.fromEntries(data.clients.map((c) => [c.id, prefill ? c.id === prefill : true]))
+		untrack(() =>
+			Object.fromEntries(data.clients.map((c) => [c.id, prefill ? c.id === prefill : true]))
+		)
 	);
 	let instructions = $state('');
 	let busy = $state(false);
@@ -55,7 +58,9 @@
 </section>
 
 <div class="mb-4 flex items-center gap-3 text-sm">
-	<button class="text-zinc-400 hover:text-zinc-100" onclick={() => toggleAll(true)}>select all</button>
+	<button class="text-zinc-400 hover:text-zinc-100" onclick={() => toggleAll(true)}
+		>select all</button
+	>
 	<span class="text-zinc-700">·</span>
 	<button class="text-zinc-400 hover:text-zinc-100" onclick={() => toggleAll(false)}>none</button>
 	<span class="ml-auto text-zinc-500">{chosen.length} selected</span>
@@ -66,11 +71,7 @@
 		<label
 			class="flex cursor-pointer items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 px-4 py-3 transition hover:border-zinc-700"
 		>
-			<input
-				type="checkbox"
-				bind:checked={selected[c.id]}
-				class="h-4 w-4 accent-emerald-500"
-			/>
+			<input type="checkbox" bind:checked={selected[c.id]} class="h-4 w-4 accent-emerald-500" />
 			<span class="font-medium">{c.name}</span>
 			<span class="mono text-xs text-zinc-500">{c.layer}</span>
 		</label>

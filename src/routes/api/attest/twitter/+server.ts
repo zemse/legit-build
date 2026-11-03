@@ -22,9 +22,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const session = await getSession(body.sessionUuid);
 	if (!session) throw error(404, 'Unknown session');
 
-	const approved = Array.isArray(body.approved)
-		? body.approved
-		: session.results.map((_, i) => i);
+	const approved = Array.isArray(body.approved) ? body.approved : session.results.map((_, i) => i);
 	const results = approved.map((i) => session.results[i]).filter(Boolean);
 	if (results.length === 0) throw error(400, 'no approved results');
 
