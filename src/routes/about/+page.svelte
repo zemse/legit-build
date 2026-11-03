@@ -6,7 +6,7 @@
 			<h2 class="text-lg font-medium text-zinc-100">The claim, not the proof</h2>
 			<p class="mt-1 text-zinc-400">
 				We do not run builds and we do not prove a build is honest. We record independent claims
-				that a client release builds to a given binary hash, and surface where builders agree and
+				that a project release builds to a given binary hash, and surface where builders agree and
 				where they diverge. Trust comes from N-of-M corroboration across identities, not from any
 				single attestation.
 			</p>
@@ -15,8 +15,8 @@
 		<div>
 			<h2 class="text-lg font-medium text-zinc-100">Build it yourself</h2>
 			<p class="mt-1 text-zinc-400">
-				Start a session, pick clients, and paste one line into your coding agent. It builds each
-				client against a pinned, deterministic recipe and reports the binary hash back here live.
+				Start a session, pick projects, and paste one line into your coding agent. It builds each
+				project against a pinned, deterministic recipe and reports the binary hash back here live.
 				You review every result and sign only what you approve.
 			</p>
 		</div>

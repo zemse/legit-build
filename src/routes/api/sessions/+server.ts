@@ -1,26 +1,27 @@
 import { error, json } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { clients as clientsTable } from '$lib/server/db/schema';
-import { createSession, MAX_CLIENTS } from '$lib/server/sessions';
+import { projects as projectsTable } from '$lib/server/db/schema';
+import { createSession, MAX_PROJECTS } from '$lib/server/sessions';
 import type { RequestHandler } from './$types';
 
-// POST /api/sessions {clients[], instructions?} -> {uuid, uploadToken, attestUrl, instructionsUrl}
+// POST /api/sessions {projects[], instructions?} -> {uuid, uploadToken, attestUrl, instructionsUrl}
 // The uploadToken is returned ONLY here, to the creating browser (spec §7 capability model).
 export const POST: RequestHandler = async ({ request, url }) => {
 	const body = (await request.json().catch(() => null)) as {
-		clients?: unknown;
+		projects?: unknown;
 		instructions?: unknown;
 	} | null;
-	if (!body || !Array.isArray(body.clients) || body.clients.length === 0) {
-		throw error(400, 'clients[] required');
+	if (!body || !Array.isArray(body.projects) || body.projects.length === 0) {
+		throw error(400, 'projects[] required');
 	}
-	if (body.clients.length > MAX_CLIENTS) throw error(400, `max ${MAX_CLIENTS} clients per session`);
+	if (body.projects.length > MAX_PROJECTS)
+		throw error(400, `max ${MAX_PROJECTS} projects per session`);
 
-	const requested = body.clients.map(String);
-	const known = await db.select({ id: clientsTable.id }).from(clientsTable);
+	const requested = body.projects.map(String);
+	const known = await db.select({ id: projectsTable.id }).from(projectsTable);
 	const knownIds = new Set(known.map((k) => k.id));
-	const selected = requested.filter((c) => knownIds.has(c));
-	if (selected.length === 0) throw error(400, 'no known clients in selection');
+	const selected = requested.filter((p) => knownIds.has(p));
+	if (selected.length === 0) throw error(400, 'no known projects in selection');
 
 	const instructions =
 		typeof body.instructions === 'string' ? body.instructions.slice(0, 4000) : null;
@@ -31,7 +32,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		uuid,
 		uploadToken,
 		attestUrl: `${url.origin}/attest/${uuid}`,
-		instructionsUrl: `${url.origin}/attest/${uuid}?format=md`,
+		instructionsUrl: `${url.origin}/attest/${uuid}/llms.txt`,
 		contributeLine: `${url.origin}/contribute uuid=${uuid}`
 	});
 };

@@ -15,6 +15,17 @@ export function identityLabel(id: Identity): string {
 	return id.ens || shortAddr(id.address);
 }
 
+// Project ids contain slashes (`github/owner/repo`); they live under /p/ as a rest
+// path. Tags are appended after a literal `releases` segment so the single rest
+// route can split project id from version without encoding slashes.
+export function projectHref(id: string): string {
+	return `/p/${id}`;
+}
+
+export function releaseHref(id: string, tag: string): string {
+	return `/p/${id}/releases/${tag}`;
+}
+
 export function timeAgo(iso: string | Date): string {
 	const d = Date.now() - new Date(iso).getTime();
 	const s = Math.floor(d / 1000);

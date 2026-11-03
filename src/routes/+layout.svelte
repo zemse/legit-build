@@ -10,7 +10,7 @@
 			legit<span class="text-zinc-500">.build</span>
 		</a>
 		<nav class="flex items-center gap-5 text-sm text-zinc-400">
-			<a class="transition hover:text-zinc-100" href="/">Clients</a>
+			<a class="transition hover:text-zinc-100" href="/">Projects</a>
 			<a class="transition hover:text-zinc-100" href="/about">How it works</a>
 			<a
 				class="transition hover:text-zinc-100"
@@ -27,7 +27,7 @@
 
 	<footer class="border-t border-zinc-800 py-6 text-xs text-zinc-500">
 		<p>
-			legit.build records independent attestations that an Ethereum client release builds to a
+			legit.build records independent attestations that a software release builds to a
 			given binary hash. We do not run builds and do not prove honesty — we surface agreement and
 			divergence.
 		</p>

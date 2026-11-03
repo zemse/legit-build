@@ -18,7 +18,7 @@ function tokenOk(provided: string | null, expected: string): boolean {
 }
 
 const REQUIRED: (keyof BuildResult)[] = [
-	'client',
+	'project',
 	'version',
 	'tag',
 	'sourceCommit',
@@ -49,8 +49,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	const parsed = JSON.parse(raw) as { result?: unknown };
 	const result = validate(parsed.result);
 	if (!result) throw error(400, 'invalid result shape');
-	if (!row.clients.includes(result.client))
-		throw error(400, `client ${result.client} not in session`);
+	if (!row.projects.includes(result.project))
+		throw error(400, `project ${result.project} not in session`);
 
 	const seq = await appendResult(params.uuid, result);
 	if (seq === null) throw error(409, 'session not accepting results (expired?)');

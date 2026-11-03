@@ -4,7 +4,7 @@ import { SchemaRegistry } from '@ethereum-attestation-service/eas-sdk';
 import { ethers } from 'ethers';
 
 const BATCH_SCHEMA =
-	'string[] client,string[] version,string[] osArch,bytes32[] artifactHash,bytes32[] sourceCommit,bytes32[] recipeHash,bytes32[] toolchainHash';
+	'string[] project,string[] version,string[] osArch,bytes32[] artifactHash,bytes32[] sourceCommit,bytes32[] recipeHash,bytes32[] toolchainHash';
 
 const SCHEMA_REGISTRY = '0x4200000000000000000000000000000000000020'; // Base Sepolia
 const RPC = process.env.EAS_RPC_URL ?? 'https://sepolia.base.org';

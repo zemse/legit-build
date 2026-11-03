@@ -29,8 +29,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	const { uid, signed, attester } = await signIssuerAttestation(results);
 
 	const fields = resultsToBatchFields(results);
-	const subjects = fields.client.map((_, i) => ({
-		client: fields.client[i],
+	const subjects = fields.project.map((_, i) => ({
+		project: fields.project[i],
 		version: fields.version[i],
 		osArch: fields.osArch[i],
 		artifactHash: fields.artifactHash[i],

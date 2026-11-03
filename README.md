@@ -1,9 +1,10 @@
 # legit.build
 
-Public attestation site for Ethereum client binary reproducibility. Lists every tracked
-client, its releases, and independent attestations that a release builds to a given binary
-hash — grouped by architecture, with divergence flagged. Builders run the build themselves
-(agent relay) and sign the result with a wallet (EAS off-chain) or Twitter (trusted issuer).
+Public attestation site for software binary reproducibility. Lists every tracked project
+(forge-qualified: `github/owner/repo`, `gitlab/owner/repo`), its releases, and independent
+attestations that a release builds to a given binary hash — grouped by target architecture,
+with divergence flagged. Builders run the build themselves (agent relay) and sign the result
+with a wallet (EAS off-chain) or Twitter (trusted issuer). Seeded with the Ethereum clients.
 
 Spec: `research/ethereum/devcon8-binary-verification-talk/10-attestation-site-spec.md`.
 
@@ -40,11 +41,16 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:5173/api/cron/poll
 
 ## Key routes
 
-- `/` landing, `/clients/:id`, `/clients/:id/releases/:tag` (cohort view)
+- `/` landing, `/p/<forge>/<owner>/<repo>` (project), `/p/<forge>/<owner>/<repo>/releases/<tag>` (cohort view)
 - `/start` session builder, `/attest/:uuid` live + sign, `/attest/:uuid/llms.txt` agent instructions
 - `/contribute` agent entrypoint (prompt is a placeholder, WIP)
 - `/llms.txt`, `/llms-full.txt`
 - `POST /api/sessions`, `/api/sessions/:uuid/{results,complete,events}`, `/api/attestations`, `/api/attest/twitter`
+
+## Adding a project
+
+Append a row to `src/lib/projects-seed.ts` (`forge`, `owner`, `repo`, `name`) and run
+`pnpm db:seed`. GitHub and GitLab are supported; add a forge in `src/lib/server/forge.ts`.
 
 ## Known gaps (tracked in the spec)
 

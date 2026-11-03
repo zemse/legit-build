@@ -14,13 +14,13 @@ export interface StoreParams {
 	raw?: Record<string, unknown>;
 }
 
-/** Explode a batch attestation into one row per subject so the site groups per client (spec §9). */
+/** Explode a batch attestation into one row per subject so the site groups per project (spec §9). */
 export async function storeSubjects(p: StoreParams): Promise<number> {
 	if (p.subjects.length === 0) return 0;
 	const rows = p.subjects.map((s, i) => ({
 		id: `${p.uidPrefix}#${i}`,
 		source: p.source,
-		client: s.client,
+		project: s.project,
 		version: s.version,
 		osArch: s.osArch,
 		sourceCommit: s.sourceCommit,
@@ -41,18 +41,18 @@ export async function storeSubjects(p: StoreParams): Promise<number> {
 	return res.length;
 }
 
-export async function countByClient(): Promise<Record<string, number>> {
+export async function countByProject(): Promise<Record<string, number>> {
 	const rows = await db
-		.select({ client: attestations.client, n: sql<number>`count(*)::int` })
+		.select({ project: attestations.project, n: sql<number>`count(*)::int` })
 		.from(attestations)
-		.groupBy(attestations.client);
-	return Object.fromEntries(rows.map((r) => [r.client, r.n]));
+		.groupBy(attestations.project);
+	return Object.fromEntries(rows.map((r) => [r.project, r.n]));
 }
 
 function toView(r: typeof attestations.$inferSelect): AttestationView {
 	return {
 		id: r.id,
-		client: r.client,
+		project: r.project,
 		version: r.version,
 		osArch: r.osArch,
 		sourceCommit: r.sourceCommit,
@@ -65,15 +65,15 @@ function toView(r: typeof attestations.$inferSelect): AttestationView {
 	};
 }
 
-/** Attestations for a release, matched by client + version==tag. */
+/** Attestations for a release, matched by project + version==tag. */
 export async function getReleaseAttestations(
-	clientId: string,
+	projectId: string,
 	tag: string
 ): Promise<AttestationView[]> {
 	const rows = await db
 		.select()
 		.from(attestations)
-		.where(and(eq(attestations.client, clientId), eq(attestations.version, tag)))
+		.where(and(eq(attestations.project, projectId), eq(attestations.version, tag)))
 		.orderBy(desc(attestations.createdAt));
 	return rows.map(toView);
 }

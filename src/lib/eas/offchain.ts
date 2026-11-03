@@ -39,7 +39,7 @@ export async function siweSignIn(signer: Signer, address: string): Promise<void>
 		`${domain} wants you to sign in with your Ethereum account:`,
 		address,
 		'',
-		'Sign in to legit.build to attest client builds.',
+		'Sign in to legit.build to attest project builds.',
 		'',
 		`URI: ${window.location.origin}`,
 		'Version: 1',

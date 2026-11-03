@@ -6,25 +6,25 @@
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 
-	const prefill = page.url.searchParams.get('client');
+	const prefill = page.url.searchParams.get('project');
 	let selected = $state<Record<string, boolean>>(
 		untrack(() =>
-			Object.fromEntries(data.clients.map((c) => [c.id, prefill ? c.id === prefill : true]))
+			Object.fromEntries(data.projects.map((p) => [p.id, prefill ? p.id === prefill : true]))
 		)
 	);
 	let instructions = $state('');
 	let busy = $state(false);
 	let err = $state<string | null>(null);
 
-	const chosen = $derived(data.clients.filter((c) => selected[c.id]).map((c) => c.id));
+	const chosen = $derived(data.projects.filter((p) => selected[p.id]).map((p) => p.id));
 
 	function toggleAll(on: boolean) {
-		selected = Object.fromEntries(data.clients.map((c) => [c.id, on]));
+		selected = Object.fromEntries(data.projects.map((p) => [p.id, on]));
 	}
 
 	async function start() {
 		if (chosen.length === 0) {
-			err = 'Select at least one client.';
+			err = 'Select at least one project.';
 			return;
 		}
 		busy = true;
@@ -33,7 +33,7 @@
 			const res = await fetch('/api/sessions', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ clients: chosen, instructions: instructions || undefined })
+				body: JSON.stringify({ projects: chosen, instructions: instructions || undefined })
 			});
 			if (!res.ok) throw new Error(await res.text());
 			const s = (await res.json()) as { uuid: string; uploadToken: string };
@@ -51,7 +51,7 @@
 <section class="py-8">
 	<h1 class="text-3xl font-semibold tracking-tight">Build &amp; attest</h1>
 	<p class="mt-3 max-w-2xl text-zinc-400">
-		Select the clients to build. You'll get one line to paste into your agent (Claude Code, Cursor,
+		Select the projects to build. You'll get one line to paste into your agent (Claude Code, Cursor,
 		a cloud sandbox); it builds against a pinned recipe and reports each binary hash back here. You
 		sign only what you approve.
 	</p>
@@ -67,13 +67,13 @@
 </div>
 
 <div class="mb-6 grid gap-2 sm:grid-cols-2">
-	{#each data.clients as c (c.id)}
+	{#each data.projects as p (p.id)}
 		<label
 			class="flex cursor-pointer items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 px-4 py-3 transition hover:border-zinc-700"
 		>
-			<input type="checkbox" bind:checked={selected[c.id]} class="h-4 w-4 accent-emerald-500" />
-			<span class="font-medium">{c.name}</span>
-			<span class="mono text-xs text-zinc-500">{c.layer}</span>
+			<input type="checkbox" bind:checked={selected[p.id]} class="h-4 w-4 accent-emerald-500" />
+			<span class="font-medium">{p.name ?? p.repo}</span>
+			<span class="mono truncate text-xs text-zinc-500">{p.id}</span>
 		</label>
 	{/each}
 </div>

@@ -4,14 +4,14 @@ import type { BuildResult } from '$lib/types';
 /**
  * Batch off-chain schema (spec §9, v1 default).
  * Array-typed so ONE attestation (one wallet signature) covers every approved
- * client in a session. Arrays are index-aligned.
+ * project in a session. Arrays are index-aligned.
  */
 export const BATCH_SCHEMA =
-	'string[] client,string[] version,string[] osArch,bytes32[] artifactHash,bytes32[] sourceCommit,bytes32[] recipeHash,bytes32[] toolchainHash';
+	'string[] project,string[] version,string[] osArch,bytes32[] artifactHash,bytes32[] sourceCommit,bytes32[] recipeHash,bytes32[] toolchainHash';
 
 /** Per-build scalar schema kept for the v2 on-chain / multiAttest path. */
 export const SCALAR_SCHEMA =
-	'bytes32 artifactHash,string client,string version,string osArch,bytes32 sourceCommit,bytes32 recipeHash,bytes32 toolchainHash';
+	'bytes32 artifactHash,string project,string version,string osArch,bytes32 sourceCommit,bytes32 recipeHash,bytes32 toolchainHash';
 
 /** Normalize a hash/commit of any accepted form into a 0x-prefixed bytes32. */
 export function toBytes32(input: string): string {
@@ -26,7 +26,7 @@ export function toBytes32(input: string): string {
 }
 
 export interface BatchFields {
-	client: string[];
+	project: string[];
 	version: string[];
 	osArch: string[];
 	artifactHash: string[];
@@ -37,7 +37,7 @@ export interface BatchFields {
 
 export function resultsToBatchFields(results: BuildResult[]): BatchFields {
 	return {
-		client: results.map((r) => r.client),
+		project: results.map((r) => r.project),
 		version: results.map((r) => r.version),
 		osArch: results.map((r) => r.osArch),
 		artifactHash: results.map((r) => toBytes32(r.artifactHash)),
@@ -52,7 +52,7 @@ export function encodeBatch(results: BuildResult[]): string {
 	const f = resultsToBatchFields(results);
 	const encoder = new SchemaEncoder(BATCH_SCHEMA);
 	return encoder.encodeData([
-		{ name: 'client', value: f.client, type: 'string[]' },
+		{ name: 'project', value: f.project, type: 'string[]' },
 		{ name: 'version', value: f.version, type: 'string[]' },
 		{ name: 'osArch', value: f.osArch, type: 'string[]' },
 		{ name: 'artifactHash', value: f.artifactHash, type: 'bytes32[]' },
@@ -64,7 +64,7 @@ export function encodeBatch(results: BuildResult[]): string {
 
 /** Decode the batch `data` field back into per-index subject rows. */
 export interface DecodedSubject {
-	client: string;
+	project: string;
 	version: string;
 	osArch: string;
 	artifactHash: string;
@@ -78,15 +78,15 @@ export function decodeBatch(data: string): DecodedSubject[] {
 	const decoded = encoder.decodeData(data);
 	const byName = Object.fromEntries(decoded.map((d) => [d.name, d.value.value as unknown]));
 	const arr = (k: string) => (byName[k] as unknown[]).map((v) => String(v));
-	const client = arr('client');
+	const project = arr('project');
 	const version = arr('version');
 	const osArch = arr('osArch');
 	const artifactHash = arr('artifactHash');
 	const sourceCommit = arr('sourceCommit');
 	const recipeHash = arr('recipeHash');
 	const toolchainHash = arr('toolchainHash');
-	return client.map((_, i) => ({
-		client: client[i],
+	return project.map((_, i) => ({
+		project: project[i],
 		version: version[i],
 		osArch: osArch[i],
 		artifactHash: artifactHash[i],

@@ -9,3 +9,4 @@ build
 dist
 /drizzle/meta
 *.local
+.env*

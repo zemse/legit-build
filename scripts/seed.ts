@@ -1,35 +1,39 @@
-// Seed/refresh the clients table. Standalone (no SvelteKit aliases): run with `pnpm db:seed`.
+// Seed/refresh the projects table. Standalone (no SvelteKit aliases): run with `pnpm db:seed`.
 import { neon } from '@neondatabase/serverless';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { CLIENTS } from '../src/lib/clients-seed.ts';
-import { clients } from '../src/lib/server/db/schema.ts';
+import { PROJECTS, seedId } from '../src/lib/projects-seed.ts';
+import { projects } from '../src/lib/server/db/schema.ts';
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL is not set');
 
 const db = drizzle(neon(url));
 
-const rows = CLIENTS.map((c) => ({
-	id: c.id,
-	name: c.name,
-	repo: c.repo,
-	layer: c.layer,
-	lang: c.lang
+const rows = PROJECTS.map((p) => ({
+	id: seedId(p),
+	forge: p.forge,
+	owner: p.owner,
+	repo: p.repo,
+	name: p.name,
+	layer: p.layer ?? null,
+	lang: p.lang ?? null
 }));
 
 await db
-	.insert(clients)
+	.insert(projects)
 	.values(rows)
 	.onConflictDoUpdate({
-		target: clients.id,
+		target: projects.id,
 		set: {
-			name: sql`excluded.name`,
+			forge: sql`excluded.forge`,
+			owner: sql`excluded.owner`,
 			repo: sql`excluded.repo`,
+			name: sql`excluded.name`,
 			layer: sql`excluded.layer`,
 			lang: sql`excluded.lang`
 		}
 	});
 
-console.log(`Seeded ${rows.length} clients.`);
+console.log(`Seeded ${rows.length} projects.`);
 process.exit(0);

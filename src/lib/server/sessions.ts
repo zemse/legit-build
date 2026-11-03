@@ -5,7 +5,7 @@ import { sessions } from './db/schema';
 import type { BuildResult, SessionPublic, SessionState } from '$lib/types';
 
 const DEFAULT_TTL = 7200; // 2h (spec §7)
-export const MAX_CLIENTS = 20;
+export const MAX_PROJECTS = 20;
 export const MAX_RESULT_BYTES = 16 * 1024;
 
 export interface CreatedSession {
@@ -14,7 +14,7 @@ export interface CreatedSession {
 }
 
 export async function createSession(
-	clients: string[],
+	projectIds: string[],
 	instructions: string | null
 ): Promise<CreatedSession> {
 	const uuid = randomUUID();
@@ -23,7 +23,7 @@ export async function createSession(
 	await db.insert(sessions).values({
 		uuid,
 		uploadToken,
-		clients,
+		projects: projectIds,
 		instructions,
 		state: 'created',
 		expiresAt,
@@ -41,7 +41,7 @@ export async function getSession(uuid: string) {
 export function toPublic(row: NonNullable<Awaited<ReturnType<typeof getSession>>>): SessionPublic {
 	return {
 		uuid: row.uuid,
-		clients: row.clients,
+		projects: row.projects,
 		instructions: row.instructions,
 		state: row.state,
 		results: row.results,

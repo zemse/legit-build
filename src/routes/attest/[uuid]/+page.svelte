@@ -30,7 +30,7 @@
 		});
 		es.addEventListener('result', (e) => {
 			const r = JSON.parse((e as MessageEvent).data) as BuildResult;
-			liveLog = [...liveLog, `${r.client} ✓ ${shortHash(r.artifactHash)} (${r.osArch})`];
+			liveLog = [...liveLog, `${r.project} ✓ ${shortHash(r.artifactHash)} (${r.osArch})`];
 		});
 		return () => es.close();
 	});
@@ -105,7 +105,7 @@
 	</h1>
 	<p class="mt-2 text-sm text-zinc-400">
 		Paste this one line into your agent (Claude Code, Cursor, a cloud sandbox). It builds the
-		selected clients against a pinned recipe and reports each hash back here, live.
+		selected projects against a pinned recipe and reports each hash back here, live.
 	</p>
 
 	<div class="mt-4 flex items-stretch gap-2">
@@ -121,7 +121,7 @@
 		</button>
 	</div>
 	<p class="mt-2 text-xs text-zinc-600">
-		Clients: {session.clients.join(', ')} · session {session.uuid.slice(0, 8)}…
+		Projects: {session.projects.join(', ')} · session {session.uuid.slice(0, 8)}…
 	</p>
 </section>
 
@@ -151,7 +151,7 @@
 								class="h-4 w-4 accent-emerald-500"
 							/>
 						{/if}
-						<span class="font-medium">{r.client}</span>
+						<span class="font-medium">{r.project}</span>
 						<span class="mono text-xs text-zinc-500">{r.osArch}</span>
 					</div>
 					<div class="flex items-center gap-3">
@@ -179,8 +179,8 @@
 		<div
 			class="mono mt-3 max-h-48 overflow-y-auto rounded-lg border border-zinc-800 bg-black/40 p-3 text-xs text-zinc-300"
 		>
-			{#each approvedResults as r (r.client + r.artifactHash)}
-				<div>{r.client} {r.version} {r.osArch} → {shortHash(r.artifactHash, 16, 10)}</div>
+			{#each approvedResults as r (r.project + r.artifactHash)}
+				<div>{r.project} {r.version} {r.osArch} → {shortHash(r.artifactHash, 16, 10)}</div>
 			{:else}
 				<div class="text-zinc-600">Nothing selected.</div>
 			{/each}

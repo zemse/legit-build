@@ -12,25 +12,30 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { BuildResult, Identity, SessionState } from '../../types';
 
-/** Ethereum clients we track (spec §4: ~13 from the build audit). */
-export const clients = pgTable('clients', {
-	id: text('id').primaryKey(), // slug, e.g. "reth"
-	name: text('name').notNull(),
-	repo: text('repo').notNull(), // "owner/name" on GitHub
-	layer: text('layer').notNull(), // "execution" | "consensus"
-	lang: text('lang'), // primary language, informational
-	releaseSource: text('release_source').notNull().default('github'),
+/**
+ * Projects we track. Identity is forge-qualified so the same model supports any
+ * repo on any forge (spec §4): id = `<forge>/<owner>/<repo>`, e.g.
+ * `github/ethereum/go-ethereum` or `gitlab/group/subgroup/repo`.
+ */
+export const projects = pgTable('projects', {
+	id: text('id').primaryKey(), // `${forge}/${owner}/${repo}`
+	forge: text('forge').notNull(), // 'github' | 'gitlab'
+	owner: text('owner').notNull(), // may contain slashes (gitlab subgroups)
+	repo: text('repo').notNull(),
+	name: text('name'), // display name; defaults to repo
+	layer: text('layer'), // optional tag, e.g. execution | consensus
+	lang: text('lang'), // optional
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 
-/** Releases, polled from GitHub Releases on a cron (spec §4, §15.2). */
+/** Versions: releases polled from the project's forge on a cron (spec §4, §15.2). */
 export const releases = pgTable(
 	'releases',
 	{
-		id: text('id').primaryKey(), // `${clientId}@${tag}`
-		clientId: text('client_id')
+		id: text('id').primaryKey(), // `${projectId}@${tag}`
+		projectId: text('project_id')
 			.notNull()
-			.references(() => clients.id, { onDelete: 'cascade' }),
+			.references(() => projects.id, { onDelete: 'cascade' }),
 		tag: text('tag').notNull(),
 		commit: text('commit'), // resolved tag -> commit sha
 		name: text('name'),
@@ -44,7 +49,7 @@ export const releases = pgTable(
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
 	(t) => [
-		index('releases_client_idx').on(t.clientId),
+		index('releases_project_idx').on(t.projectId),
 		index('releases_published_idx').on(t.publishedAt)
 	]
 );
@@ -56,7 +61,7 @@ export const sessions = pgTable(
 		uuid: text('uuid').primaryKey(),
 		// uploadToken is NEVER returned in a uuid-fetchable body (spec §7 OPEN note).
 		uploadToken: text('upload_token').notNull(),
-		clients: jsonb('clients').$type<string[]>().notNull(),
+		projects: jsonb('projects').$type<string[]>().notNull(), // selected project ids
 		instructions: text('instructions'),
 		state: text('state').$type<SessionState>().notNull().default('created'),
 		results: jsonb('results')
@@ -74,20 +79,20 @@ export const sessions = pgTable(
 );
 
 /**
- * Attestations: our index of both DB-issued (twitter, issuer key) and
- * wallet EAS off-chain attestations we created or merged from easscan (spec §4, §10).
+ * Attestations: our index of both DB-issued (twitter, issuer key) and wallet EAS
+ * off-chain attestations we created or merged from easscan (spec §4, §10). A batch
+ * attestation is exploded into one row per subject so the site groups per project.
  */
 export const attestations = pgTable(
 	'attestations',
 	{
-		id: text('id').primaryKey(), // EAS off-chain UID, or `db:${nanoid}`
+		id: text('id').primaryKey(), // EAS off-chain UID + index, or `db:${id}#i`
 		source: text('source').$type<'eas' | 'db'>().notNull(),
 
-		// Subject (spec §4). For batched off-chain attestations each decoded
-		// array element is stored as its own row so the site can group per client.
-		client: text('client').notNull(),
+		// Subject (spec §4). `project` is the forge-qualified project id.
+		project: text('project').notNull(),
 		version: text('version').notNull(),
-		osArch: text('os_arch').notNull(),
+		osArch: text('os_arch').notNull(), // the target
 		sourceCommit: text('source_commit').notNull(),
 		recipeHash: text('recipe_hash').notNull(),
 		toolchainHash: text('toolchain_hash').notNull(),
@@ -97,9 +102,8 @@ export const attestations = pgTable(
 		identity: jsonb('identity').$type<Identity>().notNull(),
 		attester: text('attester').notNull(), // wallet address or `twitter:${userId}`
 
-		// Provenance: the signed off-chain blob / EAS UID bundle, for re-verification.
 		raw: jsonb('raw').$type<Record<string, unknown>>(),
-		refUid: text('ref_uid'), // release schema ref, if used (v2 on-chain)
+		refUid: text('ref_uid'),
 		sessionUuid: text('session_uuid'),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
@@ -107,13 +111,13 @@ export const attestations = pgTable(
 		// Dedupe on merge: one attester attests one subject+hash once (spec §10).
 		uniqueIndex('attestations_dedupe_idx').on(
 			t.attester,
-			t.client,
+			t.project,
 			t.version,
 			t.osArch,
 			t.sourceCommit,
 			t.artifactHash
 		),
-		index('attestations_subject_idx').on(t.client, t.version, t.osArch),
+		index('attestations_subject_idx').on(t.project, t.version, t.osArch),
 		index('attestations_artifact_idx').on(t.artifactHash)
 	]
 );
@@ -129,14 +133,14 @@ export const identityCache = pgTable('identity_cache', {
 });
 
 export const releasesRelations = relations(releases, ({ one }) => ({
-	client: one(clients, { fields: [releases.clientId], references: [clients.id] })
+	project: one(projects, { fields: [releases.projectId], references: [projects.id] })
 }));
 
-export const clientsRelations = relations(clients, ({ many }) => ({
+export const projectsRelations = relations(projects, ({ many }) => ({
 	releases: many(releases)
 }));
 
-export type Client = typeof clients.$inferSelect;
+export type Project = typeof projects.$inferSelect;
 export type Release = typeof releases.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
 export type Attestation = typeof attestations.$inferSelect;

@@ -2,8 +2,8 @@ import { json } from '@sveltejs/kit';
 import { sql } from 'drizzle-orm';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
-import { clients, releases } from '$lib/server/db/schema';
-import { pollReleases } from '$lib/server/github';
+import { projects, releases } from '$lib/server/db/schema';
+import { pollReleases } from '$lib/server/forge';
 import { expireStale } from '$lib/server/sessions';
 import type { RequestHandler } from './$types';
 
@@ -16,17 +16,17 @@ export const GET: RequestHandler = async ({ request }) => {
 		}
 	}
 
-	const all = await db.select().from(clients);
+	const all = await db.select().from(projects);
 	const summary: Record<string, number> = {};
 	const errors: Record<string, string> = {};
 
-	for (const c of all) {
+	for (const p of all) {
 		try {
-			const polled = await pollReleases(c.repo);
+			const polled = await pollReleases({ forge: p.forge, owner: p.owner, repo: p.repo });
 			if (polled.length === 0) continue;
 			const rows = polled.map((r) => ({
-				id: `${c.id}@${r.tag}`,
-				clientId: c.id,
+				id: `${p.id}@${r.tag}`,
+				projectId: p.id,
 				tag: r.tag,
 				commit: r.commit,
 				name: r.name,
@@ -47,9 +47,9 @@ export const GET: RequestHandler = async ({ request }) => {
 						url: sql`excluded.url`
 					}
 				});
-			summary[c.id] = rows.length;
+			summary[p.id] = rows.length;
 		} catch (e) {
-			errors[c.id] = e instanceof Error ? e.message : String(e);
+			errors[p.id] = e instanceof Error ? e.message : String(e);
 		}
 	}
 

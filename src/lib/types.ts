@@ -2,14 +2,14 @@
 
 export type OsArch = string; // e.g. "linux/amd64", "linux/arm64", "darwin/arm64"
 
-/** The result an agent POSTs per built client (spec §8). */
+/** The result an agent POSTs per built project (spec §8). */
 export interface BuildResult {
-	client: string;
+	project: string; // forge-qualified project id, e.g. github/ethereum/go-ethereum
 	version: string;
 	tag: string;
 	sourceCommit: string;
 	recipeRepoCommit: string;
-	osArch: OsArch;
+	osArch: OsArch; // the build target
 	artifactHash: string; // sha256 of the built binary
 	toolchainHash: string; // compiler/toolchain fingerprint
 	buildLogSha256: string; // hash of the full log; log optionally uploaded
@@ -26,7 +26,7 @@ export type SessionState =
 
 export interface SessionPublic {
 	uuid: string;
-	clients: string[];
+	projects: string[];
 	instructions: string | null;
 	state: SessionState;
 	results: BuildResult[];
@@ -52,7 +52,7 @@ export type Identity = WalletIdentity | TwitterIdentity;
 /** A stored attestation, DB-issued (twitter) or wallet (EAS off-chain). */
 export interface AttestationView {
 	id: string;
-	client: string;
+	project: string;
 	version: string;
 	osArch: OsArch;
 	sourceCommit: string;

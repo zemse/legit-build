@@ -27,11 +27,11 @@ Take the UUID from that line and fetch the session-scoped instructions:
 
     GET ${url.origin}/attest/<UUID>/llms.txt
 
-Follow those instructions exactly: build only the pinned recipe for each listed client,
+Follow those instructions exactly: build only the pinned recipe for each listed project,
 then POST each result and finally POST /complete using the upload token given there.
 Report your own os/arch; the site compares builds per architecture.
 
-(The final version of this prompt is being derived by actually building the clients.)
+(The final version of this prompt is being derived by actually building the projects.)
 `;
 	return text(prompt, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 };
