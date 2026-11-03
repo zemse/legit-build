@@ -7,17 +7,10 @@
 	<header class="flex items-center justify-between py-5">
 		<a href="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight">
 			<span class="inline-block h-3 w-3 rounded-sm bg-emerald-400"></span>
-			legit<span class="text-zinc-500">.build</span>
+			<span>legit<span class="text-zinc-500">.build</span></span>
 		</a>
 		<nav class="flex items-center gap-5 text-sm text-zinc-400">
-			<a class="transition hover:text-zinc-100" href="/">Projects</a>
 			<a class="transition hover:text-zinc-100" href="/about">How it works</a>
-			<a
-				class="transition hover:text-zinc-100"
-				href="https://github.com/ethereum-attestation-service"
-				target="_blank"
-				rel="noreferrer">EAS</a
-			>
 		</nav>
 	</header>
 
@@ -27,9 +20,9 @@
 
 	<footer class="border-t border-zinc-800 py-6 text-xs text-zinc-500">
 		<p>
-			legit.build records independent attestations that a software release builds to a
-			given binary hash. We do not run builds and do not prove honesty — we surface agreement and
-			divergence.
+			An open index of independent attestations that a release builds to a given binary hash. We
+			don't run the builds and we don't vouch for them. We show where builders agree and where they
+			don't.
 		</p>
 	</footer>
 </div>
