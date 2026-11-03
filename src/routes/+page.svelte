@@ -12,10 +12,10 @@
 </script>
 
 <section class="py-8">
-	<h1 class="text-3xl font-semibold tracking-tight">Who rebuilt the project, and to what hash?</h1>
+	<h1 class="text-3xl font-semibold tracking-tight">Don't trust the release. Check it.</h1>
 	<p class="mt-3 max-w-2xl text-zinc-400">
-		Pick a project and release to see every independent attestation of its binary hash, grouped by
-		target architecture, with divergence flagged.
+		See who independently rebuilt each Ethereum client release, the binary hash they got, and where
+		the results agree or diverge.
 	</p>
 </section>
 
