@@ -34,9 +34,9 @@
 			</div>
 			<h2 class="mt-4 text-lg font-semibold text-zinc-100">Anyone can attest</h2>
 			<p class="mt-2 text-sm text-zinc-400">
-				Rebuild any release with your own coding agent, in your own environment, against a pinned
-				deterministic recipe. One line to start. The agent reports the binary hash it got; no
-				account, no gatekeeping.
+				Paste one line into your coding agent and it does the work: clones the client's source and
+				builds the release locally, on your own machine, against a pinned deterministic recipe, then
+				reports the binary hash it got. No account, no gatekeeping.
 			</p>
 		</div>
 
