@@ -2,6 +2,7 @@
   "project": "github/hyperledger/besu",
   "artifactPath": "artifact/besu-app.jar",
   "osArch": ["linux/amd64", "linux/arm64", "darwin/arm64"],
+  "archIndependent": true,
   "toolchain": { "jdk": "eclipse-temurin:25-jdk@sha256:83f4a7fc27df94dcc7b8de04d14cbbba8da14406f921e966969c3b09000aa507 (Gradle wrapper pins Gradle)", "note": "arch-independent (JVM bytecode); same image as teku, digest verified 2026-11-04; we hash the application jar, not the tarball" },
   "reproducible": "full",
   "notes": "Verified: the Besu application jar is byte-identical across rebuilders and matches the jar inside Besu's official Docker image. The dist TARBALL wrapper is NOT reproducible (Gradle timestamps; Besu does not set reproducibleFileOrder/preserveFileTimestamps like Teku), so this recipe hashes the app jar. Repo moved to besu-eth/besu for releases after ~26.10; use the clone URL matching the session's project id."

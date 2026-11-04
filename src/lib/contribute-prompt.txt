@@ -38,6 +38,19 @@ build every project in the list at its latest stable release tag.
 
 ## 2. For each project you build
 
+0. Choose the target os/arch BEFORE building, and never cross-build silently:
+   - Default target = the HOST's own os/arch (check `uname -s`/`uname -m`, e.g.
+     darwin/arm64, linux/amd64), but ONLY if meta.json's osArch array includes it.
+   - Most recipes are linux/amd64 ONLY (they build inside a linux/amd64 Docker image). If
+     the host's os/arch is NOT in meta.json osArch, do NOT silently build anyway. Tell the
+     user: "this recipe only produces <osArch from meta>; you are on <host os/arch>, so
+     building here is a cross/container build, not a native one," and proceed ONLY if the
+     user explicitly asked for that target. (A macOS user who just runs the prompt gets a
+     linux/amd64 container build otherwise, which is almost never what they meant.)
+   - Cross-target / non-native builds happen ONLY on explicit user request.
+   - Exception: if meta.json has "archIndependent": true (the JVM clients Besu and Teku),
+     the artifact is the same bytes on every host, so the check always passes; report the
+     arch you actually ran on.
 1. Resolve the target: latest stable release tag unless the user named one. Record
    version, tag, and the exact sourceCommit the tag points to.
 2. Fetch the pinned recipe from the legit.build app repo at its current HEAD, path
@@ -51,9 +64,11 @@ build every project in the list at its latest stable release tag.
    from meta.json. (All hash fields use the "sha256:<hex>" form.)
 5. The recipe prints `toolchainHash=<sha256>` on its last line. Record it as
    toolchainHash = "sha256:<that hex>".
-6. Record osArch (what you actually built on: linux/amd64, linux/arm64, ...),
-   buildLogSha256 = "sha256:<hex>" of the full build log (upload the HASH only, never the
-   log), and environment (free text: "aws c7i.4xlarge", "local laptop", "e2b sandbox").
+6. Record osArch = the os/arch the artifact was ACTUALLY built for (linux/amd64,
+   linux/arm64, darwin/arm64, ...). This is the real build target, never the host if you
+   cross-built, and never the recipe's default. buildLogSha256 = "sha256:<hex>" of the full
+   build log (upload the HASH only, never the log), and environment (free text: "aws
+   c7i.4xlarge", "local laptop", "e2b sandbox").
 
 Result object, ALL 10 fields required, ALL strings:
   { project, version, tag, sourceCommit, recipeRepoCommit, osArch,
