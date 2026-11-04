@@ -1,13 +1,24 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { contributeLine, ensureSession } from '$lib/active-session';
+	import { buildInstruction, contributeLine, ensureSession } from '$lib/active-session';
 
 	// Inline contribute line, rendered directly on the page (no button, no popup).
 	// Provisions one global session per browser on mount and shows the copy box.
+	// Optional project/version context appends a scoping build instruction (home
+	// passes none, so it stays the bare line).
+	let {
+		project,
+		projectName,
+		version
+	}: { project?: string; projectName?: string; version?: string } = $props();
+
 	let line = $state<string | null>(null);
 	let uuid = $state<string | null>(null);
 	let err = $state<string | null>(null);
 	let copied = $state(false);
+
+	const instruction = $derived(buildInstruction({ project, projectName, version }));
+	const copyText = $derived(line ? (instruction ? `${line}\n${instruction}` : line) : '');
 
 	onMount(async () => {
 		try {
@@ -20,9 +31,9 @@
 	});
 
 	async function copy() {
-		if (!line) return;
+		if (!copyText) return;
 		try {
-			await navigator.clipboard.writeText(line);
+			await navigator.clipboard.writeText(copyText);
 			copied = true;
 			setTimeout(() => (copied = false), 1500);
 		} catch {
@@ -38,8 +49,8 @@
 {:else}
 	<div class="flex items-stretch gap-2">
 		<code
-			class="mono flex-1 overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-left text-sm text-zinc-200"
-			>{line ?? 'Provisioning session…'}</code
+			class="mono flex-1 overflow-x-auto whitespace-pre-wrap break-words rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-left text-sm text-zinc-200"
+			>{line ? copyText : 'Provisioning session…'}</code
 		>
 		<button
 			onclick={copy}

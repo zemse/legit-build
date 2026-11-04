@@ -1,12 +1,23 @@
 <script lang="ts">
-	import { contributeLine, ensureSession } from '$lib/active-session';
+	import { buildInstruction, contributeLine, ensureSession } from '$lib/active-session';
 
 	// Opens the contribute popup. One global session per browser: reuse the stored
 	// session if it is still valid, otherwise provision a new one. No selection UI.
+	// When a project (and optionally a version) is passed, the copied text carries a
+	// build instruction scoping the session to that project/version + native target.
 	let {
 		label = 'Build & attest',
-		variant = 'solid'
-	}: { label?: string; variant?: 'solid' | 'ghost' } = $props();
+		variant = 'solid',
+		project,
+		projectName,
+		version
+	}: {
+		label?: string;
+		variant?: 'solid' | 'ghost';
+		project?: string;
+		projectName?: string;
+		version?: string;
+	} = $props();
 
 	let dlg = $state<HTMLDialogElement>();
 	let loading = $state(false);
@@ -14,6 +25,9 @@
 	let uuid = $state<string | null>(null);
 	let err = $state<string | null>(null);
 	let copied = $state(false);
+
+	const instruction = $derived(buildInstruction({ project, projectName, version }));
+	const copyText = $derived(line ? (instruction ? `${line}\n${instruction}` : line) : '');
 
 	async function provision() {
 		if (line || loading) return;
@@ -36,9 +50,9 @@
 	}
 
 	async function copy() {
-		if (!line) return;
+		if (!copyText) return;
 		try {
-			await navigator.clipboard.writeText(line);
+			await navigator.clipboard.writeText(copyText);
 			copied = true;
 			setTimeout(() => (copied = false), 1500);
 		} catch {
@@ -92,8 +106,8 @@
 		{:else if line}
 			<div class="mt-5 flex items-stretch gap-2">
 				<code
-					class="mono flex-1 overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-200"
-					>{line}</code
+					class="mono flex-1 overflow-x-auto whitespace-pre-wrap break-words rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-200"
+					>{copyText}</code
 				>
 				<button
 					onclick={copy}

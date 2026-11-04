@@ -63,3 +63,18 @@ export async function ensureSession(): Promise<ActiveSession> {
 export function contributeLine(uuid: string): string {
 	return `${location.origin}/contribute uuid=${uuid}`;
 }
+
+// A context-specific build instruction to append under the contribute line, scoping
+// the (global) session to one project/version and the native target. Empty when no
+// project context (the home box), so that copy stays the bare line.
+export function buildInstruction(o: {
+	projectName?: string;
+	project?: string;
+	version?: string;
+}): string {
+	if (!o.project) return '';
+	const who = o.projectName ? `${o.projectName} (${o.project})` : o.project;
+	return o.version
+		? `build ${o.version} of ${who} only, for the native target`
+		: `build the latest stable release of ${who} only, for the native target`;
+}

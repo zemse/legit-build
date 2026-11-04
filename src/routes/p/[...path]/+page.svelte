@@ -15,7 +15,12 @@
 				<span class="mono text-xl text-emerald-400">{data.release.tag}</span>
 			{/if}
 		</h1>
-		<ContributeButton label="Build &amp; attest" />
+		<ContributeButton
+			label="Build &amp; attest"
+			project={data.project.id}
+			projectName={data.project.name ?? data.project.repo}
+			version={data.view === 'release' ? data.release.tag : undefined}
+		/>
 	</div>
 	<p class="mono mt-2 text-xs text-zinc-500">{data.project.id}</p>
 </section>
@@ -140,7 +145,12 @@
 			class="flex flex-col items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 text-center"
 		>
 			<p class="text-zinc-400">No attestations yet for this release.</p>
-			<ContributeButton label="Be the first to build &amp; attest" />
+			<ContributeButton
+				label="Be the first to build &amp; attest"
+				project={data.project.id}
+				projectName={data.project.name ?? data.project.repo}
+				version={data.release.tag}
+			/>
 		</div>
 	{/each}
 {/if}
