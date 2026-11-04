@@ -1,0 +1,8 @@
+{
+  "project": "github/paradigmxyz/reth",
+  "artifactPath": "artifact/reth",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "note": "builds via Dockerfile.reproducible --target artifacts (the `reproducible` cargo profile: --remap-path-prefix, --build-id=none, -C metadata='', panic=abort, --locked, mold, Debian snapshot 20250908T000000Z). Pass RUST_TOOLCHAIN>=1.96 (the in-repo default 1.89.0 does NOT compile v2.9.0); the release rustc is NOT pinned in-repo so matching the PUBLISHED artifact needs the exact CI rustc." },
+  "reproducible": "full",
+  "notes": "VERIFIED 2026-11-04: two independent `docker build --no-cache` runs produced a BYTE-IDENTICAL reth v2.9.0 reproducible binary (sha256 ddf9a4cf8d09742c2a3fd0aeb6c5925c7c1fc4e7e7e1e57ae3c9efec0dd37883, 172,591,416 bytes). The reproducible PROFILE is deterministic. IMPORTANT: this is the SEPARATE reth-reproducible artifact, not the maxperf release (which is non-reproducible: VERGEN_BUILD_TIMESTAMP wall clock, unremapped /home/runner path, rolling apt.llvm.org clang-23 snapshot) and not the :latest Depot image. Output path: Dockerfile builds to /app/target/x86_64-unknown-linux-gnu/reproducible/reth; the `artifacts` stage copies it to /reth, exported as <dest>/reth. TWO upstream bugs block a naive rebuild of v2.9.0 today, both worked around in recipe.sh: (1) .github/scripts/install_llvm_ubuntu.sh runs a plain `apt-get update` with no Check-Valid-Until=false, so the >400-day-expired pinned snapshot makes apt exit 100; (2) the ARG RUST_TOOLCHAIN=1.89.0 default is too old (needs 1.96). Convergence sha proves build-to-build determinism with rustc 1.96.0, not equality to the published release binary (no published sha available to diff; release rustc unrecorded)."
+}

@@ -57,6 +57,22 @@ export const PROJECTS: ProjectSeed[] = [
 		layer: 'execution',
 		lang: 'Rust'
 	},
+	{
+		forge: 'github',
+		owner: 'lambdaclass',
+		repo: 'ethrex',
+		name: 'ethrex',
+		layer: 'execution',
+		lang: 'Rust'
+	},
+	{
+		forge: 'github',
+		owner: 'status-im',
+		repo: 'nimbus-eth1',
+		name: 'Nimbus EL',
+		layer: 'execution',
+		lang: 'Nim'
+	},
 
 	// Consensus layer
 	{

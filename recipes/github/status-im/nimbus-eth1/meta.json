@@ -1,0 +1,8 @@
+{
+  "project": "github/status-im/nimbus-eth1",
+  "artifactPath": "artifact/nimbus",
+  "osArch": ["linux/amd64"],
+  "toolchain": { "base": "statusim/nimbus-eth1:dist_base_eth1...@sha256:8b9442cd... (pinned in-repo)", "note": "make dist-linux-amd64 builds inside the pinned image" },
+  "reproducible": "partial",
+  "notes": "Same result as nimbus-eth2: the .text section is bit-identical to the published v0.4.4 nimbus binary, but the full binary does not converge, because of (1) a Nim 'Compiled at <date>' banner in .rodata and (2) environment-dependent .symtab/.strtab symbol ordering (the bulk of the diff; no code change). Deterministic on a fixed machine+date, divergent across machines/days. Note: the GitHub release tarball (nimbus-linux-amd64-<v>-<commit>.tar.gz) is a REPACKAGE of the dist output (just build/nimbus), so only the binary is verifiable, not the tarball. Status fixes: SOURCE_DATE_EPOCH for the banner + deterministic symbol order -> full."
+}

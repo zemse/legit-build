@@ -1,0 +1,8 @@
+{
+  "project": "github/Consensys/teku",
+  "artifactPath": "artifact/teku.tar.gz",
+  "osArch": ["linux/amd64", "linux/arm64", "darwin/arm64"],
+  "toolchain": { "jdk": "eclipse-temurin:25-jdk@sha256:83f4a7fc27df94dcc7b8de04d14cbbba8da14406f921e966969c3b09000aa507 (Gradle wrapper pins Gradle)", "note": "arch-independent (JVM bytecode); digest verified 2026-11-04" },
+  "reproducible": "full",
+  "notes": "Verified: the Gradle dist tarball is byte-identical across rebuilders and even across OS/arch (JVM bytecode), because build.gradle sets jar.reproducibleFileOrder=true and jar.preserveFileTimestamps=false. The one reproducible client where the whole tarball (not just a jar) matches."
+}
