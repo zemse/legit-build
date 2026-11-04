@@ -38,19 +38,20 @@ build every project in the list at its latest stable release tag.
 
 ## 2. For each project you build
 
-0. Choose the target os/arch BEFORE building, and never cross-build silently:
-   - Default target = the HOST's own os/arch (check `uname -s`/`uname -m`, e.g.
-     darwin/arm64, linux/amd64), but ONLY if meta.json's osArch array includes it.
-   - Most recipes are linux/amd64 ONLY (they build inside a linux/amd64 Docker image). If
-     the host's os/arch is NOT in meta.json osArch, do NOT silently build anyway. Tell the
-     user: "this recipe only produces <osArch from meta>; you are on <host os/arch>, so
-     building here is a cross/container build, not a native one," and proceed ONLY if the
-     user explicitly asked for that target. (A macOS user who just runs the prompt gets a
-     linux/amd64 container build otherwise, which is almost never what they meant.)
-   - Cross-target / non-native builds happen ONLY on explicit user request.
-   - Exception: if meta.json has "archIndependent": true (the JVM clients Besu and Teku),
-     the artifact is the same bytes on every host, so the check always passes; report the
-     arch you actually ran on.
+0. Target os/arch: build the HOST's native target FIRST, then offer others. Never
+   cross-build silently.
+   - Check the host os/arch (`uname -s`/`uname -m`: darwin/arm64, linux/amd64, ...).
+   - If the host's os/arch is in meta.json osArch (or meta has "archIndependent": true, the
+     JVM clients Besu/Teku whose artifact is the same bytes everywhere), build THAT target,
+     natively. Native goes first on purpose: building a foreign arch under emulation or a
+     cross container is far slower, so the fast native result lands first.
+   - If the host's os/arch is NOT in meta.json osArch (e.g. you are on darwin/arm64 and the
+     recipe is linux/amd64-only, which is most of them), do NOT silently build the foreign
+     arch. Tell the user: "this recipe only produces <osArch from meta>; you are on <host
+     os/arch>, so there is no native build for you here." Build a non-native target only if
+     the user explicitly asks (section 5 covers how that cross/remote build works).
+   - Any target beyond the native one is OFFERED after the native build is uploaded
+     (section 5), and built only if the user picks it. Never silently cross-build.
 1. Resolve the target: latest stable release tag unless the user named one. Record
    version, tag, and the exact sourceCommit the tag points to.
 2. Fetch the pinned recipe from the legit.build app repo at its current HEAD, path
@@ -130,9 +131,21 @@ Body (note the `result` envelope):
   a new one. An invalid signature is NOT rejected; do not retry a 400 by mutating the
   result to match anything.
 
-## 5. When finished
+## 5. Offer other targets, then finish
 
-After uploading every project you built, mark the session done:
+After the native build is uploaded, if meta.json osArch lists targets you have not built
+yet, PROACTIVELY OFFER them (do not build them unprompted):
+
+  "I built and uploaded <native target>. meta also lists <other targets>. Want any of those
+   too? I can build them (a) here, cross-arch via container/emulation (correct but slow), or
+   (b) on a remote machine you have that is natively that arch (fast)."
+
+Build only the targets the user picks, by the method they pick. Each target is a SEPARATE
+build and a SEPARATE result POST: re-run sections 2-4, with osArch = that target. Never
+silently cross-build. (If a recipe lists only one target, or the client is archIndependent,
+there is nothing extra to offer.)
+
+When every target the user wanted is uploaded, mark the session done:
 
     POST <resultsEndpoint without /results, i.e. .../api/sessions/<UUID>/complete>
     Authorization: Bearer <uploadToken>
