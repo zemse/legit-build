@@ -7,7 +7,7 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = async ({ url }) => {
 	const rows = await db.select().from(projects);
 	const list = rows
-		.map((p) => `- [${p.name ?? p.repo}](${url.origin}/p/${p.id}): ${p.id}`)
+		.map((p) => `- [${p.name ?? p.repo}](${url.origin}/${p.id}): ${p.id}`)
 		.join('\n');
 
 	const body = `# legit.build

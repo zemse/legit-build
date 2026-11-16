@@ -17,7 +17,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ params, setHeaders }) => {
 	setHeaders({ 'cache-control': 'public, max-age=0, s-maxage=30' });
 
-	const full = params.path;
+	const full = `${params.forge}/${params.path}`;
 	const marker = '/releases/';
 	const idx = full.indexOf(marker);
 	const projectId = idx >= 0 ? full.slice(0, idx) : full;

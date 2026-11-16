@@ -41,7 +41,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:5173/api/cron/poll
 
 ## Key routes
 
-- `/` landing, `/p/<forge>/<owner>/<repo>` (project), `/p/<forge>/<owner>/<repo>/releases/<tag>` (cohort view)
+- `/` landing, `/<forge>/<owner>/<repo>` (project), `/<forge>/<owner>/<repo>/releases/<tag>` (cohort view); old `/p/...` links redirect
 - `/start` session builder, `/attest/:uuid` live + sign, `/attest/:uuid/llms.txt` agent instructions
 - `/contribute` agent entrypoint (prompt is a placeholder, WIP)
 - `/llms.txt`, `/llms-full.txt`
