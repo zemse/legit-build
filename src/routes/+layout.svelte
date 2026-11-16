@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import SessionIndicator from '$lib/components/SessionIndicator.svelte';
+	import XAccount from '$lib/components/XAccount.svelte';
 	let { children } = $props();
 </script>
 
@@ -13,6 +14,7 @@
 		<nav class="flex items-center gap-4 text-sm text-zinc-400">
 			<SessionIndicator />
 			<a class="transition hover:text-zinc-100" href="/about">How it works</a>
+			<XAccount />
 		</nav>
 	</header>
 

@@ -112,7 +112,7 @@ export async function getProjectAttestationSummary(
 	return out;
 }
 
-function toView(r: typeof attestations.$inferSelect): AttestationView {
+export function toView(r: typeof attestations.$inferSelect): AttestationView {
 	return {
 		id: r.id,
 		project: r.project,
@@ -124,6 +124,7 @@ function toView(r: typeof attestations.$inferSelect): AttestationView {
 		artifactHash: r.artifactHash,
 		source: r.source,
 		identity: r.identity,
+		proofTweetId: r.proofTweetId,
 		createdAt: r.createdAt.toISOString()
 	};
 }

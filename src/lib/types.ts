@@ -88,6 +88,7 @@ export interface AttestationView {
 	artifactHash: string;
 	source: AttestationSource;
 	identity: Identity;
+	proofTweetId?: string | null; // public X post announcing it (twitter identities)
 	createdAt: string;
 }
 

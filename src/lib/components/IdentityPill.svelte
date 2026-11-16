@@ -10,14 +10,24 @@
 	};
 	const title: Record<Identity['kind'], string> = {
 		wallet: 'self-sovereign wallet EAS',
-		twitter: 'backend-vouched Twitter',
+		twitter: 'X account',
 		github: 'GitHub key signature (gpg)'
 	};
 </script>
 
-<span
-	class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs {style[id.kind]}"
-	title={title[id.kind]}
->
-	<span class="mono">{identityLabel(id)}</span>
-</span>
+{#if id.kind === 'twitter'}
+	<a
+		href={`/x/${id.handle}`}
+		class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs {style[id.kind]}"
+		title={title[id.kind]}
+	>
+		<span class="mono">{identityLabel(id)}</span>
+	</a>
+{:else}
+	<span
+		class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs {style[id.kind]}"
+		title={title[id.kind]}
+	>
+		<span class="mono">{identityLabel(id)}</span>
+	</span>
+{/if}

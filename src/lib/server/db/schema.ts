@@ -105,6 +105,8 @@ export const attestations = pgTable(
 		raw: jsonb('raw').$type<Record<string, unknown>>(),
 		refUid: text('ref_uid'),
 		sessionUuid: text('session_uuid'),
+		// Public X post by the attester that announces this attestation (twitter source).
+		proofTweetId: text('proof_tweet_id'),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
 	(t) => [
@@ -130,6 +132,17 @@ export const identityCache = pgTable('identity_cache', {
 	fidFollowers: bigint('fid_followers', { mode: 'number' }),
 	accountAgeDays: integer('account_age_days'),
 	refreshedAt: timestamp('refreshed_at', { withTimezone: true }).notNull().defaultNow()
+});
+
+/** Accounts a signed-in X user follows (capped), cached so we fetch at most daily. */
+export const xFollowing = pgTable('x_following', {
+	viewerId: text('viewer_id').primaryKey(), // X numeric user id
+	followingIds: jsonb('following_ids')
+		.$type<string[]>()
+		.notNull()
+		.default(sql`'[]'::jsonb`),
+	truncated: boolean('truncated').notNull().default(false),
+	fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow()
 });
 
 export const releasesRelations = relations(releases, ({ one }) => ({

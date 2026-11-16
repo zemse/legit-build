@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
+	import { invalidateAll } from '$app/navigation';
+	import { loadActive } from '$lib/active-session';
 	import IdentityPill from '$lib/components/IdentityPill.svelte';
 	import { shortHash } from '$lib/format';
 	import type { BuildResult, SessionPublic } from '$lib/types';
@@ -75,17 +77,54 @@
 		msg = null;
 		try {
 			const approvedIdx = session.results.map((_, i) => i).filter((i) => approved[i]);
+			const active = loadActive();
+			const uploadToken = active?.uuid === session.uuid ? active.uploadToken : undefined;
 			const res = await fetch('/api/attest/twitter', {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ sessionUuid: session.uuid, approved: approvedIdx })
+				body: JSON.stringify({ sessionUuid: session.uuid, uploadToken, approved: approvedIdx })
 			});
-			if (!res.ok) throw new Error(await res.text());
-			msg = `Attested ${approvedIdx.length} result(s) via @${data.twitter?.handle}.`;
+			if (!res.ok) throw new Error(await errorText(res));
+			msg = `Attested ${approvedIdx.length} result(s) as @${data.twitter?.handle}. Now tell your followers.`;
+			await invalidateAll();
 		} catch (e) {
 			err = e instanceof Error ? e.message : 'Twitter attestation failed';
 		} finally {
 			signing = false;
+		}
+	}
+
+	async function errorText(res: Response): Promise<string> {
+		const t = await res.text();
+		try {
+			return (JSON.parse(t) as { message?: string }).message ?? t;
+		} catch {
+			return t;
+		}
+	}
+
+	// Link the user's public X post to their attestation.
+	let proofUrl = $state('');
+	let proofBusy = $state(false);
+	let proofErr = $state<string | null>(null);
+	let posted = $state(false);
+
+	async function linkProof(withUrl: boolean) {
+		if (!data.xPost) return;
+		proofBusy = true;
+		proofErr = null;
+		try {
+			const res = await fetch('/api/attest/twitter/proof', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ uid: data.xPost.uid, url: withUrl ? proofUrl : undefined })
+			});
+			if (!res.ok) throw new Error(await errorText(res));
+			await invalidateAll();
+		} catch (e) {
+			proofErr = e instanceof Error ? e.message : 'Could not verify the post';
+		} finally {
+			proofBusy = false;
 		}
 	}
 
@@ -231,14 +270,14 @@
 					disabled={signing || approvedResults.length === 0}
 					class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-sky-950 transition hover:bg-sky-400 disabled:opacity-50"
 				>
-					Twitter (@{data.twitter.handle})
+					Attest as @{data.twitter.handle} on X
 				</button>
 			{:else}
 				<a
 					href={`/auth/twitter?returnTo=/attest/${session.uuid}`}
 					class="rounded-lg border border-sky-700/60 px-4 py-2 text-sm text-sky-300 transition hover:bg-sky-950/40"
 				>
-					Sign in with Twitter to attest
+					Sign in with X to attest
 				</a>
 			{/if}
 		</div>
@@ -246,5 +285,65 @@
 {:else if session.state === 'attested'}
 	<section class="rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-5">
 		<p class="text-emerald-300">This session's results have been attested. Thank you.</p>
+	</section>
+{/if}
+
+{#if data.xPost}
+	<section class="mt-6 rounded-xl border border-sky-900/50 bg-sky-950/10 p-5">
+		{#if data.xPost.proofUrl}
+			<h2 class="text-lg font-medium">Published on X</h2>
+			<p class="mt-1 text-sm text-zinc-400">
+				Your attestation is linked to
+				<a class="text-sky-300 underline" href={data.xPost.proofUrl} target="_blank" rel="noopener"
+					>your post</a
+				>. Anyone can check it came from @{data.twitter?.handle}.
+			</p>
+		{:else}
+			<h2 class="text-lg font-medium">Tell your followers</h2>
+			<p class="mt-1 text-sm text-zinc-400">
+				Post this from @{data.twitter?.handle}. It publishes your attestation under your name, and
+				people who follow you will see it next to these releases.
+			</p>
+			<pre
+				class="mt-3 whitespace-pre-wrap rounded-lg border border-zinc-800 bg-black/40 p-3 text-sm text-zinc-200">{data
+					.xPost.text}</pre>
+			<div class="mt-4 flex flex-wrap items-center gap-3">
+				<a
+					href={data.xPost.intentUrl}
+					target="_blank"
+					rel="noopener"
+					onclick={() => (posted = true)}
+					class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-sky-950 transition hover:bg-sky-400"
+				>
+					Post on X
+				</a>
+				{#if posted}
+					<button
+						onclick={() => linkProof(false)}
+						disabled={proofBusy}
+						class="rounded-lg border border-sky-700/60 px-4 py-2 text-sm text-sky-300 transition hover:bg-sky-950/40 disabled:opacity-50"
+					>
+						{proofBusy ? 'Checking…' : "I've posted it"}
+					</button>
+				{/if}
+			</div>
+			<div class="mt-3 flex gap-2">
+				<input
+					bind:value={proofUrl}
+					placeholder="or paste your post link (x.com/…/status/…)"
+					class="flex-1 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3 py-2 text-sm text-zinc-200"
+				/>
+				<button
+					onclick={() => linkProof(true)}
+					disabled={proofBusy || !proofUrl}
+					class="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 transition hover:bg-zinc-900 disabled:opacity-50"
+				>
+					Link
+				</button>
+			</div>
+			{#if proofErr}
+				<p class="mt-3 text-sm text-red-300">{proofErr}</p>
+			{/if}
+		{/if}
 	</section>
 {/if}

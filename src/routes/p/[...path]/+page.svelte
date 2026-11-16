@@ -1,4 +1,5 @@
 <script lang="ts">
+	import NetworkAttestations from '$lib/components/NetworkAttestations.svelte';
 	import ContributeButton from '$lib/components/ContributeButton.svelte';
 	import IdentityPill from '$lib/components/IdentityPill.svelte';
 	import { releaseHref, shortHash, timeAgo } from '$lib/format';
@@ -100,6 +101,8 @@
 			</span>
 		{/if}
 	</div>
+
+	<NetworkAttestations project={data.project.id} tag={data.release.tag} />
 
 	{#each data.cohorts as cohort (cohort.osArch + cohort.recipeHash)}
 		<section class="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/30">
