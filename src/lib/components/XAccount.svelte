@@ -27,6 +27,7 @@
 
 {#if loaded}
 	{#if handle}
+		<a class="transition hover:text-zinc-100" href={`/x/${handle}`}>My attestations</a>
 		<a class="transition hover:text-zinc-100" href="/network">People you follow</a>
 		<span class="flex items-center gap-2">
 			<a class="text-sky-300 transition hover:text-sky-200" href={`/x/${handle}`}>@{handle}</a>
