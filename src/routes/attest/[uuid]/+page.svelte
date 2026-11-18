@@ -14,12 +14,8 @@
 	let copied = $state(false);
 
 	// Per-result approval for signing (default all approved).
-	let approved = $state<Record<number, boolean>>({});
-	$effect(() => {
-		for (let i = 0; i < session.results.length; i++)
-			if (approved[i] === undefined) approved[i] = true;
-	});
-	const approvedResults = $derived(session.results.filter((_, i) => approved[i]));
+	let excluded = $state<Record<number, boolean>>({});
+	const approvedResults = $derived(session.results.filter((_, i) => !excluded[i]));
 
 	let signing = $state(false);
 	let msg = $state<string | null>(null);
@@ -76,7 +72,7 @@
 		err = null;
 		msg = null;
 		try {
-			const approvedIdx = session.results.map((_, i) => i).filter((i) => approved[i]);
+			const approvedIdx = session.results.map((_, i) => i).filter((i) => !excluded[i]);
 			const active = loadActive();
 			const uploadToken = active?.uuid === session.uuid ? active.uploadToken : undefined;
 			const res = await fetch(`/api/attest/${kind}`, {
@@ -189,7 +185,8 @@
 						{#if session.state === 'results_ready'}
 							<input
 								type="checkbox"
-								bind:checked={approved[i]}
+								checked={!excluded[i]}
+								onchange={(e) => (excluded[i] = !e.currentTarget.checked)}
 								class="h-4 w-4 accent-emerald-500"
 							/>
 						{/if}
