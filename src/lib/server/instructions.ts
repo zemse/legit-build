@@ -63,9 +63,11 @@ target architecture, it does not require a specific one. Full generic protocol: 
 
 ## For each project, POST the result as soon as it finishes
 
+uploadToken: \`${session.uploadToken}\`
+
 \`\`\`
 POST ${origin}/api/sessions/${session.uuid}/results
-Authorization: Bearer <UPLOAD_TOKEN>
+Authorization: Bearer <uploadToken>
 Content-Type: application/json
 
 { "result": {
@@ -75,8 +77,6 @@ Content-Type: application/json
   "buildLogSha256": "sha256:<hex>", "environment": "aws c7g.4xlarge | local | e2b sandbox"
 } }
 \`\`\`
-
-UPLOAD_TOKEN: \`${session.uploadToken}\`
 
 Build and report **only what you observe**. Never fetch, guess, or compare against any
 "expected", "official", or "canonical" hash; legit.build compares rebuilders to each
@@ -105,7 +105,7 @@ sandbox, so prefer unsigned there and let the user authorize in the browser.
 
 \`\`\`
 POST ${origin}/api/sessions/${session.uuid}/complete
-Authorization: Bearer <UPLOAD_TOKEN>
+Authorization: Bearer <uploadToken>
 \`\`\`
 
 The user is watching ${origin}/attest/${session.uuid} live and will sign the results they approve.

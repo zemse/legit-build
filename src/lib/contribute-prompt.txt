@@ -117,7 +117,7 @@ machine, or fall back to unsigned plus browser auth.
 ## 4. Upload, one POST per (project, tag) you built
 
 POST <resultsEndpoint from your session instructions>
-Authorization: Bearer <uploadToken from your session instructions>
+Authorization: Bearer <uploadToken>
 Content-Type: application/json
 
 Body (note the `result` envelope):
