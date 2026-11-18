@@ -15,7 +15,7 @@ git clone --depth 1 --branch "$TAG" https://github.com/ethereum/go-ethereum "$WO
 GOVER="$(sed -n 's/^# version:golang //p' "$WORK/src/build/checksums.txt" | head -1)"
 [ -n "$GOVER" ] || { echo "ERROR: no Go version pinned in build/checksums.txt" >&2; exit 4; }
 
-docker run --rm -v "$WORK/src":/w -w /w "$IMG" bash -euo pipefail -c "
+docker run --rm --platform linux/amd64 -v "$WORK/src":/w -w /w "$IMG" bash -euo pipefail -c "
   export DEBIAN_FRONTEND=noninteractive
   apt-get update >/dev/null
   apt-get install -y --no-install-recommends gcc libc6-dev git ca-certificates wget >/dev/null
