@@ -45,3 +45,14 @@ export function clearIdentity(cookies: Cookies): void {
 }
 
 export const IDENTITY_COOKIE = COOKIE;
+
+/** Same-site path to send the user back to after sign-in; anything off-site becomes `/`. */
+export function safeReturnTo(returnTo: string | null | undefined): string {
+	if (!returnTo?.startsWith('/')) return '/';
+	try {
+		const u = new URL(returnTo, 'http://local');
+		return u.origin === 'http://local' ? u.pathname + u.search + u.hash : '/';
+	} catch {
+		return '/';
+	}
+}

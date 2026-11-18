@@ -1,5 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import { setIdentity } from '$lib/server/auth';
+import { safeReturnTo, setIdentity } from '$lib/server/auth';
 import { exchangeCode, fetchMe, primeFollowing } from '$lib/server/github-oauth';
 import type { RequestHandler } from './$types';
 
@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get('code');
 	const state = url.searchParams.get('state');
 	const expectedState = cookies.get('gh_state');
-	const returnTo = cookies.get('gh_return') ?? '/';
+	const returnTo = safeReturnTo(cookies.get('gh_return'));
 
 	if (!code || !state || state !== expectedState) throw error(400, 'invalid oauth callback');
 

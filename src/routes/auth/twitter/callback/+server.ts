@@ -1,5 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import { setIdentity } from '$lib/server/auth';
+import { safeReturnTo, setIdentity } from '$lib/server/auth';
 import { exchangeCode, fetchMe } from '$lib/server/twitter';
 import type { RequestHandler } from './$types';
 
@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const state = url.searchParams.get('state');
 	const expectedState = cookies.get('tw_state');
 	const verifier = cookies.get('tw_verifier');
-	const returnTo = cookies.get('tw_return') ?? '/';
+	const returnTo = safeReturnTo(cookies.get('tw_return'));
 
 	if (!code || !state || !verifier || state !== expectedState) {
 		throw error(400, 'invalid oauth callback');
