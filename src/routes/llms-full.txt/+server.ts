@@ -17,9 +17,10 @@ export const GET: RequestHandler = async ({ url }) => {
 
 A public index of independent attestations that a given software release binary
 hashes to a given value. Projects are forge-qualified (github/owner/repo, gitlab/owner/repo).
-Two attestation paths:
+Three attestation paths:
 - Wallet: the builder signs one EAS off-chain attestation (gas-free) over the batch.
-- Twitter: the builder authenticates with X; the backend (trusted issuer) signs on their behalf.
+- X or GitHub account: the builder signs in with X or GitHub; the backend (trusted issuer) signs on their behalf.
+- GitHub GPG key: the agent signs each result with a key published at github.com/<user>.gpg.
 
 We do not run builds. Agents/users run them on their own machine, AWS, or a sandbox.
 We do not prove a build is honest; we surface agreement and divergence (N-of-M corroboration).

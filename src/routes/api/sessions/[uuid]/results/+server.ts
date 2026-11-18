@@ -60,7 +60,7 @@ function pick(o: Record<string, unknown>): BuildResult | null {
 // Body: { result: { ...10 fields, githubUsername?, gpgSignature? } }
 // A valid GPG signature is self-authorizing: we write a source:"github"
 // attestation immediately (no browser step). Invalid signatures are stored
-// unsigned and flagged; the user falls back to wallet/Twitter in the browser.
+// unsigned and flagged; the user falls back to wallet, X or GitHub account in the browser.
 export const POST: RequestHandler = async ({ params, request }) => {
 	const raw = await request.text();
 	if (raw.length > MAX_RESULT_BYTES) throw error(413, 'result too large');

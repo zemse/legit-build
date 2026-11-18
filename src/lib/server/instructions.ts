@@ -13,7 +13,7 @@ const RECIPES_REPO = 'https://github.com/zemse/legit-build';
  * capability that lives in the URL; the uploadToken is a separate secret delivered
  * only inside this instruction body (never in the URL). Possession of this body is
  * the upload capability. Nothing counts until the user signs in their trusted
- * context (wallet/Twitter), or the agent includes a verifiable GitHub signature.
+ * context (wallet, X or GitHub account), or the agent includes a verifiable GitHub signature.
  */
 export async function buildAgentInstructions(origin: string, session: Session): Promise<string> {
 	const selected = session.projects;
@@ -86,7 +86,7 @@ other, not to a blessed value.
 
 Do this **only if a GPG signing key already exists on this machine** (check
 \`gpg --list-secret-keys\`). Never generate a key to sign; having no key is normal, and
-you then just skip this and the user authorizes in their browser via wallet or Twitter.
+you then just skip this and the user authorizes in their browser via wallet, X or GitHub account.
 
 If a key exists:
 1. You must know the GitHub username the key is registered under (ask the user; there is

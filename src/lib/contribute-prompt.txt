@@ -108,7 +108,7 @@ Check for a key: `git config --get user.signingkey`, `gpg --list-secret-keys`,
      self-authorizing attestation immediately, no browser step needed.
 - Only an SSH key (no GPG): submit UNSIGNED. SSH signatures are accepted in shape but not
   yet verified server-side; do not send one expecting verification.
-- No key: submit unsigned. The user authorizes it in their browser via wallet or Twitter.
+- No key: submit unsigned. The user authorizes it in their browser via wallet, X or GitHub account.
 
 Security note for the user: signing happens wherever YOU run. In a cloud sandbox, signing
 there exposes the user's private key to that sandbox. Prefer signing on the user's own
@@ -151,4 +151,4 @@ When every target the user wanted is uploaded, mark the session done:
     Authorization: Bearer <uploadToken>
 
 Then tell the user to return to their legit.build browser tab to review and (if unsigned)
-attest with their wallet or Twitter. The user attests; you do not.
+attest with their wallet, X or GitHub account. The user attests; you do not.

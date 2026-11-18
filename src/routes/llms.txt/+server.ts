@@ -29,7 +29,7 @@ Start a session, then paste the given line into your coding agent:
 
 The agent fetches ${url.origin}/attest/<uuid>/llms.txt and follows it: build the pinned
 recipe per project, POST each result, POST /complete. The human signs approved results
-in the browser (wallet off-chain EAS, or Twitter trusted-issuer).
+in the browser (wallet off-chain EAS, or X / GitHub sign-in via trusted issuer).
 
 ## Result schema (agent -> us)
 
