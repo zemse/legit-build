@@ -6,12 +6,14 @@
 set -euo pipefail
 command -v docker >/dev/null || { echo "ERROR: docker required to run the pinned toolchain" >&2; exit 3; }
 TAG="${1:?usage: recipe.sh <tag>}"
-GOVER="1.27.3"                       # the Go version geth's release (-dlgo) pins at this tag
 IMG="ubuntu@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852"  # ubuntu:24.04, verified bit-for-bit
 OUT="$PWD/artifact"; mkdir -p "$OUT"
 WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
 
 git clone --depth 1 --branch "$TAG" https://github.com/ethereum/go-ethereum "$WORK/src"
+# The Go version geth's release (-dlgo) pins at this tag.
+GOVER="$(sed -n 's/^# version:golang //p' "$WORK/src/build/checksums.txt" | head -1)"
+[ -n "$GOVER" ] || { echo "ERROR: no Go version pinned in build/checksums.txt" >&2; exit 4; }
 
 docker run --rm -v "$WORK/src":/w -w /w "$IMG" bash -euo pipefail -c "
   export DEBIAN_FRONTEND=noninteractive
