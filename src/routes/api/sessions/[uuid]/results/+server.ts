@@ -33,6 +33,21 @@ const REQUIRED: (keyof BuildResult)[] = [
 	'environment'
 ];
 
+// Fields stored as bytes32: a git sha1/sha256 or a sha256 digest, optionally prefixed.
+const HASH_FIELDS: (keyof BuildResult)[] = [
+	'sourceCommit',
+	'recipeRepoCommit',
+	'artifactHash',
+	'toolchainHash'
+];
+const HASH_RE = /^(?:sha256:|0x)?[0-9a-f]{40}(?:[0-9a-f]{24})?$/i;
+
+/** First hash field that isn't a hex digest, e.g. a placeholder like "pending". */
+function badHashField(o: Record<string, unknown>): string | null {
+	for (const k of HASH_FIELDS) if (!HASH_RE.test(String(o[k]).trim())) return k;
+	return null;
+}
+
 /** Keep only the 10 trusted fields; strips any agent-supplied githubSig/signature spoof. */
 function pick(o: Record<string, unknown>): BuildResult | null {
 	for (const k of REQUIRED) if (typeof o[k] !== 'string') return null;
@@ -59,6 +74,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	const input = parsed.result as Record<string, unknown>;
 	const result = pick(input);
 	if (!result) throw error(400, 'invalid result shape');
+	const bad = badHashField(input);
+	if (bad)
+		throw error(
+			400,
+			`${bad} must be a 40 or 64 hex digit hash, got ${JSON.stringify(String(input[bad]).slice(0, 80))}`
+		);
 	if (!row.projects.includes(result.project))
 		throw error(400, `project ${result.project} not in session`);
 
