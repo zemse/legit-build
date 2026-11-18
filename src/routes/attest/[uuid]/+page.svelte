@@ -60,6 +60,7 @@
 			});
 			if (!res.ok) throw new Error(await res.text());
 			msg = `Attested ${approvedResults.length} result(s). Thank you.`;
+			session = { ...session, state: 'attested' };
 		} catch (e) {
 			err = e instanceof Error ? e.message : 'Wallet attestation failed';
 		} finally {
@@ -85,6 +86,7 @@
 				kind === 'twitter'
 					? `Attested ${approvedIdx.length} result(s) as @${data.twitter?.handle}. Now tell your followers.`
 					: `Attested ${approvedIdx.length} result(s) as ${data.github?.login} on GitHub. Thank you.`;
+			session = { ...session, state: 'attested' };
 			await invalidateAll();
 		} catch (e) {
 			err = e instanceof Error ? e.message : 'Attestation failed';
@@ -301,7 +303,7 @@
 	</section>
 {:else if session.state === 'attested'}
 	<section class="rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-5">
-		<p class="text-emerald-300">This session's results have been attested. Thank you.</p>
+		<p class="text-emerald-300">{msg ?? "This session's results have been attested. Thank you."}</p>
 	</section>
 {/if}
 

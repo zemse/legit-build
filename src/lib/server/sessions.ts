@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { and, eq, inArray, lt } from 'drizzle-orm';
+import { and, eq, inArray, lt, sql } from 'drizzle-orm';
 import { db } from './db';
 import { sessions } from './db/schema';
 import type { BuildResult, SessionPublic, SessionState } from '$lib/types';
@@ -83,7 +83,7 @@ export async function completeSession(uuid: string): Promise<boolean> {
 export async function markAttested(uuid: string): Promise<void> {
 	await db
 		.update(sessions)
-		.set({ state: 'attested', updatedAt: new Date() })
+		.set({ state: 'attested', seq: sql`${sessions.seq} + 1`, updatedAt: new Date() })
 		.where(eq(sessions.uuid, uuid));
 }
 
