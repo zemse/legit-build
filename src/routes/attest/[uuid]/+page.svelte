@@ -71,7 +71,7 @@
 		}
 	}
 
-	async function attestTwitter() {
+	async function attestAccount(kind: 'twitter' | 'github') {
 		signing = true;
 		err = null;
 		msg = null;
@@ -79,16 +79,19 @@
 			const approvedIdx = session.results.map((_, i) => i).filter((i) => approved[i]);
 			const active = loadActive();
 			const uploadToken = active?.uuid === session.uuid ? active.uploadToken : undefined;
-			const res = await fetch('/api/attest/twitter', {
+			const res = await fetch(`/api/attest/${kind}`, {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ sessionUuid: session.uuid, uploadToken, approved: approvedIdx })
 			});
 			if (!res.ok) throw new Error(await errorText(res));
-			msg = `Attested ${approvedIdx.length} result(s) as @${data.twitter?.handle}. Now tell your followers.`;
+			msg =
+				kind === 'twitter'
+					? `Attested ${approvedIdx.length} result(s) as @${data.twitter?.handle}. Now tell your followers.`
+					: `Attested ${approvedIdx.length} result(s) as ${data.github?.login} on GitHub. Thank you.`;
 			await invalidateAll();
 		} catch (e) {
-			err = e instanceof Error ? e.message : 'Twitter attestation failed';
+			err = e instanceof Error ? e.message : 'Attestation failed';
 		} finally {
 			signing = false;
 		}
@@ -202,7 +205,7 @@
 						{:else if r.githubSig?.status === 'invalid'}
 							<span
 								class="rounded-full border border-amber-700/50 bg-amber-950/40 px-2 py-0.5 text-xs text-amber-300"
-								title={`GitHub signature did not verify${r.githubSig.login ? ` for @${r.githubSig.login}` : ''}. Most likely it was signed with a key not published on github.com/${r.githubSig.login || '<user>'}.gpg. Attest with your wallet or Twitter instead.`}
+								title={`GitHub signature did not verify${r.githubSig.login ? ` for @${r.githubSig.login}` : ''}. Most likely it was signed with a key not published on github.com/${r.githubSig.login || '<user>'}.gpg. Attest with your wallet, X or GitHub account instead.`}
 							>
 								GitHub sig invalid
 							</span>
@@ -266,7 +269,7 @@
 
 			{#if data.twitter}
 				<button
-					onclick={attestTwitter}
+					onclick={() => attestAccount('twitter')}
 					disabled={signing || approvedResults.length === 0}
 					class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-sky-950 transition hover:bg-sky-400 disabled:opacity-50"
 				>
@@ -278,6 +281,23 @@
 					class="rounded-lg border border-sky-700/60 px-4 py-2 text-sm text-sky-300 transition hover:bg-sky-950/40"
 				>
 					Sign in with X to attest
+				</a>
+			{/if}
+
+			{#if data.github}
+				<button
+					onclick={() => attestAccount('github')}
+					disabled={signing || approvedResults.length === 0}
+					class="rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-violet-950 transition hover:bg-violet-400 disabled:opacity-50"
+				>
+					Attest as {data.github.login} on GitHub
+				</button>
+			{:else}
+				<a
+					href={`/auth/github?returnTo=/attest/${session.uuid}`}
+					class="rounded-lg border border-violet-700/60 px-4 py-2 text-sm text-violet-300 transition hover:bg-violet-950/40"
+				>
+					Sign in with GitHub to attest
 				</a>
 			{/if}
 		</div>

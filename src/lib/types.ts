@@ -69,7 +69,7 @@ export interface GitHubIdentity {
 	login: string;
 	userId: number | null; // stable account id; logins are mutable
 	keyFingerprint: string | null;
-	keyType: 'gpg' | 'ssh';
+	keyType: 'gpg' | 'ssh' | 'oauth'; // oauth: signed in on legit.build, no key signature
 }
 
 export type Identity = WalletIdentity | TwitterIdentity | GitHubIdentity;

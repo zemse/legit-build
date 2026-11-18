@@ -1,5 +1,5 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
-import type { TwitterIdentity, WalletIdentity } from '$lib/types';
+import type { GitHubIdentity, TwitterIdentity, WalletIdentity } from '$lib/types';
 
 declare global {
 	namespace App {
@@ -10,6 +10,7 @@ declare global {
 			// Set by hooks.server.ts from the signed session cookie.
 			twitter?: TwitterIdentity;
 			wallet?: WalletIdentity;
+			github?: GitHubIdentity;
 		}
 		interface PageData {}
 		interface PageState {}

@@ -3,25 +3,29 @@ import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { attestations } from '$lib/server/db/schema';
 import { buildCohorts, toView } from '$lib/server/attestations';
+import { getGithubFollowingIds } from '$lib/server/github-oauth';
 import { getFollowingIds } from '$lib/server/xdata';
 import type { RequestHandler } from './$types';
 
-// GET /api/x/network[?project=&tag=]
-// Attestations made by X accounts the signed-in viewer follows (and the viewer).
+// GET /api/network[?project=&tag=]
+// Attestations made by accounts the signed-in viewer follows on X or GitHub (and the viewer).
 // With project+tag, scoped to one release and marked against that release's
 // dominant hash per target; otherwise the most recent ones across all projects.
 export const GET: RequestHandler = async ({ locals, url, setHeaders }) => {
 	setHeaders({ 'cache-control': 'private, no-store' });
-	const viewer = locals.twitter;
-	if (!viewer) throw error(401, 'not signed in with X');
+	const { twitter, github } = locals;
+	if (!twitter && !github?.userId) throw error(401, 'not signed in');
+	const kind = twitter ? 'twitter' : 'github';
+	const viewer = twitter ? `@${twitter.handle}` : github!.login;
+	const self = twitter ? twitter.userId : String(github!.userId);
 
 	let following: { ids: string[]; truncated: boolean };
 	try {
-		following = await getFollowingIds(viewer);
+		following = twitter ? await getFollowingIds(twitter) : await getGithubFollowingIds(github!);
 	} catch {
 		throw error(502, 'Could not load who you follow right now, try again shortly');
 	}
-	const attesters = [...new Set([viewer.userId, ...following.ids])].map((id) => `twitter:${id}`);
+	const attesters = [...new Set([self, ...following.ids])].map((id) => `${kind}:${id}`);
 
 	const project = url.searchParams.get('project');
 	const tag = url.searchParams.get('tag');
@@ -57,7 +61,8 @@ export const GET: RequestHandler = async ({ locals, url, setHeaders }) => {
 	});
 
 	return json({
-		viewer: viewer.handle,
+		kind,
+		viewer,
 		followingChecked: following.ids.length,
 		truncated: following.truncated,
 		items

@@ -42,6 +42,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		session: toPublic(row),
 		contributeLine: `${url.origin}/contribute uuid=${params.uuid}`,
 		twitter: locals.twitter ?? null,
+		github: locals.github ?? null,
 		wallet: locals.wallet ?? null,
 		xPost
 	};

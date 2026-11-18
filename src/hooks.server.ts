@@ -5,5 +5,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const id = decodeIdentity(event.cookies.get(IDENTITY_COOKIE));
 	if (id?.kind === 'twitter') event.locals.twitter = id;
 	if (id?.kind === 'wallet') event.locals.wallet = id;
+	if (id?.kind === 'github') event.locals.github = id;
 	return resolve(event);
 };

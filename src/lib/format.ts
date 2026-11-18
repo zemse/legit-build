@@ -16,6 +16,13 @@ export function identityLabel(id: Identity): string {
 	return id.ens || shortAddr(id.address);
 }
 
+/** Public profile page for an account identity; wallets have none. */
+export function profileHref(id: Identity): string | null {
+	if (id.kind === 'twitter') return `/x/${id.handle}`;
+	if (id.kind === 'github') return `/gh/${id.login}`;
+	return null;
+}
+
 // Project ids contain slashes (`github/owner/repo`) and are served at the root as a
 // rest path (`/github/owner/repo`). Tags are appended after a literal `releases` segment so the single rest
 // route can split project id from version without encoding slashes.
